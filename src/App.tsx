@@ -13,6 +13,8 @@ import {
   ExternalLink,
   Loader2,
   ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import "./App.css";
 
@@ -51,6 +53,8 @@ const GMAIL_CLIENT_ID = "1063241264534-laueuqofg3pd192jt13uep2okkf7raq1.apps.goo
 const GMAIL_CLIENT_SECRET = "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";
 const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly email";
 
+type Theme = "light" | "dark" | "system";
+
 function App() {
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [query, setQuery] = useState("");
@@ -59,6 +63,38 @@ function App() {
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>(["gmail", "dropbox", "slack", "drive", "whatsapp"]);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem("scout-theme");
+    return (saved as Theme) || "system";
+  });
+
+  // Apply theme
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "system") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute("data-theme", theme);
+    }
+    localStorage.setItem("scout-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      if (prev === "light") return "dark";
+      if (prev === "dark") return "system";
+      return "light";
+    });
+  };
+
+  const getThemeIcon = () => {
+    if (theme === "light") return <Sun size={18} />;
+    if (theme === "dark") return <Moon size={18} />;
+    // System - show based on actual preference
+    return window.matchMedia("(prefers-color-scheme: dark)").matches 
+      ? <Moon size={18} /> 
+      : <Sun size={18} />;
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("unified-search-accounts");
@@ -263,7 +299,15 @@ function App() {
             </div>
             <span className="logo-text">Scout</span>
           </div>
-          <span className="logo-badge">Beta</span>
+          <div className="header-actions">
+            <button 
+              className="theme-toggle" 
+              onClick={toggleTheme}
+              title={`Theme: ${theme}`}
+            >
+              {getThemeIcon()}
+            </button>
+          </div>
         </div>
 
         <div className="sidebar-section">

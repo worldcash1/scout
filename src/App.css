@@ -60,9 +60,9 @@
   --transition-slow: 0.25s ease;
 }
 
-/* Dark Mode */
+/* Dark Mode - System Preference */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     /* Background */
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
@@ -98,6 +98,44 @@
     --shadow-focus: 0 0 0 3px rgba(129, 140, 248, 0.3);
     --shadow-glow: 0 0 20px rgba(129, 140, 248, 0.2);
   }
+}
+
+/* Dark Mode - Manual Override */
+:root[data-theme="dark"] {
+  /* Background */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-elevated: #1e293b;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-active: rgba(255, 255, 255, 0.1);
+  
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  /* Text */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  
+  /* Accent */
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-light: #c7d2fe;
+  --accent-subtle: rgba(129, 140, 248, 0.12);
+  --accent-muted: rgba(129, 140, 248, 0.2);
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.5), 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow-focus: 0 0 0 3px rgba(129, 140, 248, 0.3);
+  --shadow-glow: 0 0 20px rgba(129, 140, 248, 0.2);
 }
 
 body {
@@ -161,15 +199,30 @@ body {
   letter-spacing: -0.02em;
 }
 
-.logo-badge {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 3px 8px;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+}
+
+.theme-toggle:hover {
   background: var(--bg-tertiary);
-  color: var(--text-muted);
-  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  border-color: var(--border-default);
 }
 
 .sidebar-section {
