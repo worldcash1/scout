@@ -19,6 +19,12 @@ import {
   CheckSquare,
   Download,
   MessageCircleHeart,
+  Paperclip,
+  Reply,
+  Forward,
+  FileText,
+  Image,
+  File,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -33,6 +39,13 @@ interface GmailAccount {
 
 type ConnectedAccount = GmailAccount;
 
+interface Attachment {
+  id: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+}
+
 interface SearchResult {
   id: string;
   source: "gmail" | "dropbox" | "slack" | "drive" | "whatsapp";
@@ -42,8 +55,11 @@ interface SearchResult {
   subtitle: string;
   snippet: string;
   body?: string;
+  bodyHtml?: string;
+  attachments?: Attachment[];
   date: string;
   url?: string;
+  threadId?: string;
   metadata?: Record<string, string>;
 }
 
@@ -107,45 +123,54 @@ function App() {
       if (res.ok) {
         const data = await res.json();
         
-        // Extract body from parts
-        const extractBody = (payload: any): string => {
+        let plainText = "";
+        let htmlBody = "";
+        const attachments: Attachment[] = [];
+        
+        // Extract content from parts recursively
+        const extractContent = (payload: any) => {
+          // Check for attachments
+          if (payload.filename && payload.body?.attachmentId) {
+            attachments.push({
+              id: payload.body.attachmentId,
+              filename: payload.filename,
+              mimeType: payload.mimeType || "application/octet-stream",
+              size: payload.body.size || 0
+            });
+          }
+          
+          // Extract text content
           if (payload.body?.data) {
-            return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            const decoded = atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            if (payload.mimeType === "text/plain") {
+              plainText = decoded;
+            } else if (payload.mimeType === "text/html") {
+              htmlBody = decoded;
+            }
           }
+          
+          // Process nested parts
           if (payload.parts) {
-            // Prefer plain text
             for (const part of payload.parts) {
-              if (part.mimeType === "text/plain" && part.body?.data) {
-                return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-              }
-            }
-            // Fall back to HTML (strip tags)
-            for (const part of payload.parts) {
-              if (part.mimeType === "text/html" && part.body?.data) {
-                const html = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-                return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-              }
-            }
-            // Check nested parts
-            for (const part of payload.parts) {
-              if (part.parts) {
-                const nested = extractBody(part);
-                if (nested) return nested;
-              }
+              extractContent(part);
             }
           }
-          return "";
         };
 
-        const body = extractBody(data.payload);
+        extractContent(data.payload);
+        
+        // Use plain text if available, otherwise strip HTML
+        const body = plainText || (htmlBody ? htmlBody.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : "");
+        
+        const updates = { body, bodyHtml: htmlBody, attachments };
         
         // Update both results and selectedResult
         setResults(prev => prev.map(r => 
           r.id === result.id && r.sourceLabel === result.sourceLabel 
-            ? { ...r, body } 
+            ? { ...r, ...updates } 
             : r
         ));
-        setSelectedResult(prev => prev ? { ...prev, body } : null);
+        setSelectedResult(prev => prev ? { ...prev, ...updates } : null);
       }
     } catch (e) {
       console.error("Failed to fetch email body:", e);
@@ -311,7 +336,7 @@ function App() {
               const fromName = from.match(/^([^<]+)/)?.[1]?.trim().replace(/"/g, "") || from;
 
               allResults.push({
-                id: `gmail-${account.email}-${detail.id}`,
+                id: detail.id,
                 source: "gmail",
                 sourceLabel: account.email,
                 sourceColor: account.color,
@@ -320,7 +345,8 @@ function App() {
                 snippet: detail.snippet || "",
                 date: getHeader("Date"),
                 url: `https://mail.google.com/mail/u/?authuser=${account.email}#inbox/${detail.threadId}`,
-                metadata: { account: account.email }
+                threadId: detail.threadId,
+                metadata: { account: account.email, messageId: detail.id }
               });
             }
           }));
@@ -708,6 +734,38 @@ function App() {
                       <span className="preview-date-value">{selectedResult.date}</span>
                     </div>
                   </div>
+                  {/* Attachments */}
+                  {selectedResult.attachments && selectedResult.attachments.length > 0 && (
+                    <div className="attachments-section">
+                      <div className="attachments-header">
+                        <Paperclip size={16} />
+                        <span>{selectedResult.attachments.length} Attachment{selectedResult.attachments.length > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="attachments-list">
+                        {selectedResult.attachments.map((att, idx) => {
+                          const getIcon = () => {
+                            if (att.mimeType.startsWith("image/")) return <Image size={18} />;
+                            if (att.mimeType.includes("pdf") || att.mimeType.includes("document")) return <FileText size={18} />;
+                            return <File size={18} />;
+                          };
+                          const formatSize = (bytes: number) => {
+                            if (bytes < 1024) return `${bytes} B`;
+                            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+                            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+                          };
+                          return (
+                            <div key={idx} className="attachment-item">
+                              {getIcon()}
+                              <span className="attachment-name">{att.filename}</span>
+                              <span className="attachment-size">{formatSize(att.size)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email Body */}
                   <div className="preview-body">
                     {loadingBody ? (
                       <div className="loading-body">
@@ -718,7 +776,41 @@ function App() {
                       <p>{decodeHTML(selectedResult.body || selectedResult.snippet)}</p>
                     )}
                   </div>
-                  {selectedResult.url && (
+
+                  {/* Action Buttons */}
+                  {selectedResult.source === "gmail" && (
+                    <div className="preview-actions">
+                      <a 
+                        href={`https://mail.google.com/mail/u/${selectedResult.sourceLabel}/?view=cm&fs=1&to=&su=Re: ${encodeURIComponent(selectedResult.title)}&body=${encodeURIComponent('\n\n--- Original Message ---\n' + (selectedResult.body || selectedResult.snippet).substring(0, 500))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="action-btn"
+                      >
+                        <Reply size={16} />
+                        <span>Reply</span>
+                      </a>
+                      <a 
+                        href={`https://mail.google.com/mail/u/${selectedResult.sourceLabel}/?view=cm&fs=1&to=&su=Fwd: ${encodeURIComponent(selectedResult.title)}&body=${encodeURIComponent('\n\n--- Forwarded Message ---\nFrom: ' + selectedResult.subtitle + '\nSubject: ' + selectedResult.title + '\n\n' + (selectedResult.body || selectedResult.snippet).substring(0, 500))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="action-btn"
+                      >
+                        <Forward size={16} />
+                        <span>Forward</span>
+                      </a>
+                      <a 
+                        href={selectedResult.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="action-btn primary"
+                      >
+                        <ExternalLink size={16} />
+                        <span>Open in Gmail</span>
+                      </a>
+                    </div>
+                  )}
+                  
+                  {selectedResult.source !== "gmail" && selectedResult.url && (
                     <a 
                       href={selectedResult.url} 
                       target="_blank" 
