@@ -255,10 +255,13 @@ body {
 }
 
 .logo-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #D4A853 0%, #B8860B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
 }
 
 .header-actions {
