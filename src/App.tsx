@@ -346,8 +346,7 @@ function App() {
       <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <img src="/logo.svg" alt="Scout" className="logo-img" />
-            <span className="logo-text">Scout</span>
+            <img src="/logo.svg" alt="Scout" className="logo-full" />
           </div>
           <div className="header-actions">
             <button 

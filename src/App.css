@@ -254,6 +254,11 @@ body {
   border-radius: var(--radius-md);
 }
 
+.logo-full {
+  height: 40px;
+  width: auto;
+}
+
 .logo-text {
   font-size: 22px;
   font-weight: 800;

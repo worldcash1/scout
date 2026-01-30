@@ -1,0 +1,49 @@
+<svg viewBox="0 0 240 70" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dog Icon -->
+  <g transform="translate(3, 3)">
+    <!-- Background circle -->
+    <circle cx="32" cy="32" r="32" fill="#FEF3E2"/>
+    
+    <!-- Golden Retriever Face -->
+    <ellipse cx="32" cy="35" rx="22" ry="20" fill="#D4A853"/>
+    
+    <!-- Ears -->
+    <ellipse cx="14" cy="26" rx="7" ry="12" fill="#C4943D" transform="rotate(-15 14 26)"/>
+    <ellipse cx="50" cy="26" rx="7" ry="12" fill="#C4943D" transform="rotate(15 50 26)"/>
+    
+    <!-- Inner face -->
+    <ellipse cx="32" cy="38" rx="15" ry="13" fill="#E8C068"/>
+    
+    <!-- Normal eye (left) -->
+    <circle cx="23" cy="32" r="4.5" fill="#3D2914"/>
+    <circle cx="24" cy="31" r="1.5" fill="white"/>
+    
+    <!-- Magnifying glass eye (right) -->
+    <circle cx="41" cy="32" r="5.5" fill="#E8F4FC" stroke="#3B82F6" stroke-width="1.8"/>
+    <circle cx="41" cy="32" r="2.5" fill="#3B82F6" opacity="0.2"/>
+    <line x1="45" y1="36" x2="50" y2="41" stroke="#3B82F6" stroke-width="2.2" stroke-linecap="round"/>
+    
+    <!-- Nose -->
+    <ellipse cx="32" cy="44" rx="4.5" ry="3" fill="#3D2914"/>
+    
+    <!-- Mouth -->
+    <path d="M 26 50 Q 32 54 38 50" fill="none" stroke="#3D2914" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Scout Text - Clean modern font -->
+  <text x="78" y="48" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="38" 
+        font-weight="700"
+        fill="url(#goldGradient)"
+        letter-spacing="-1">Scout</text>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4A853"/>
+      <stop offset="50%" style="stop-color:#C4943D"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+  </defs>
+</svg>

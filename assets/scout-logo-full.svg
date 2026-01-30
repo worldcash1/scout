@@ -1,0 +1,64 @@
+<svg viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dog Icon -->
+  <g transform="translate(5, 5)">
+    <!-- Background circle -->
+    <circle cx="35" cy="35" r="35" fill="#FEF3E2"/>
+    
+    <!-- Golden Retriever Face -->
+    <ellipse cx="35" cy="38" rx="24" ry="22" fill="#D4A853"/>
+    
+    <!-- Ears -->
+    <ellipse cx="15" cy="28" rx="8" ry="14" fill="#C4943D" transform="rotate(-15 15 28)"/>
+    <ellipse cx="55" cy="28" rx="8" ry="14" fill="#C4943D" transform="rotate(15 55 28)"/>
+    
+    <!-- Inner face -->
+    <ellipse cx="35" cy="42" rx="16" ry="14" fill="#E8C068"/>
+    
+    <!-- Normal eye (left) -->
+    <circle cx="25" cy="34" r="5" fill="#3D2914"/>
+    <circle cx="26" cy="33" r="1.5" fill="white"/>
+    
+    <!-- Magnifying glass eye (right) -->
+    <circle cx="45" cy="34" r="6" fill="#E8F4FC" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="45" cy="34" r="3" fill="#3B82F6" opacity="0.2"/>
+    <line x1="50" y1="39" x2="55" y2="44" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Nose -->
+    <ellipse cx="35" cy="48" rx="5" ry="3.5" fill="#3D2914"/>
+    
+    <!-- Mouth -->
+    <path d="M 28 54 Q 35 58 42 54" fill="none" stroke="#3D2914" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Scout Text -->
+  <g transform="translate(85, 25)">
+    <!-- S -->
+    <path d="M 0 28 C 0 18, 8 12, 18 14 C 24 15, 26 20, 24 24 C 22 28, 14 30, 10 32 C 4 35, 2 40, 6 46 C 10 52, 22 52, 26 46" 
+          fill="none" stroke="url(#goldGradient)" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- c -->
+    <path d="M 55 30 C 42 28, 36 38, 42 48 C 48 56, 58 54, 60 48" 
+          fill="none" stroke="url(#goldGradient)" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- o (magnifying glass style) -->
+    <circle cx="82" cy="40" r="12" fill="none" stroke="url(#goldGradient)" stroke-width="6"/>
+    <line x1="91" y1="49" x2="100" y2="58" stroke="#3B82F6" stroke-width="5" stroke-linecap="round"/>
+    
+    <!-- u -->
+    <path d="M 108 28 L 108 44 C 108 54, 118 56, 126 48 L 126 28" 
+          fill="none" stroke="url(#goldGradient)" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- t -->
+    <path d="M 148 18 L 148 48 C 148 54, 154 56, 160 52" 
+          fill="none" stroke="url(#goldGradient)" stroke-width="6" stroke-linecap="round"/>
+    <line x1="138" y1="28" x2="158" y2="28" stroke="url(#goldGradient)" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4A853"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+  </defs>
+</svg>
