@@ -470,43 +470,45 @@ function App() {
               </div>
             ) : (
               <div className="preview-content">
-                <div className="preview-header">
-                  <span 
-                    className="source-badge large"
-                    style={{ backgroundColor: selectedResult.sourceColor }}
-                  >
-                    {(() => {
-                      const Icon = SOURCE_CONFIG[selectedResult.source].icon;
-                      return <Icon size={14} />;
-                    })()}
-                    <span>{selectedResult.sourceLabel}</span>
-                  </span>
-                </div>
-                <h2 className="preview-title">{selectedResult.title}</h2>
-                <div className="preview-meta">
-                  <div className="preview-from">
-                    <span className="preview-from-label">From</span>
-                    <span className="preview-from-value">{selectedResult.subtitle}</span>
+                <div className="preview-card">
+                  <div className="preview-header">
+                    <span 
+                      className="source-badge large"
+                      style={{ backgroundColor: selectedResult.sourceColor }}
+                    >
+                      {(() => {
+                        const Icon = SOURCE_CONFIG[selectedResult.source].icon;
+                        return <Icon size={14} />;
+                      })()}
+                      <span>{selectedResult.sourceLabel}</span>
+                    </span>
                   </div>
-                  <div className="preview-date-block">
-                    <span className="preview-date-label">Date</span>
-                    <span className="preview-date-value">{selectedResult.date}</span>
+                  <h2 className="preview-title">{selectedResult.title}</h2>
+                  <div className="preview-meta">
+                    <div className="preview-from">
+                      <span className="preview-from-label">From</span>
+                      <span className="preview-from-value">{selectedResult.subtitle}</span>
+                    </div>
+                    <div className="preview-date-block">
+                      <span className="preview-date-label">Date</span>
+                      <span className="preview-date-value">{selectedResult.date}</span>
+                    </div>
                   </div>
+                  <div className="preview-body">
+                    <p>{selectedResult.snippet}</p>
+                  </div>
+                  {selectedResult.url && (
+                    <a 
+                      href={selectedResult.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="preview-open-btn"
+                    >
+                      <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
+                      <ExternalLink size={16} />
+                    </a>
+                  )}
                 </div>
-                <div className="preview-body">
-                  <p>{selectedResult.snippet}</p>
-                </div>
-                {selectedResult.url && (
-                  <a 
-                    href={selectedResult.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="preview-open-btn"
-                  >
-                    <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
-                    <ExternalLink size={16} />
-                  </a>
-                )}
               </div>
             )}
           </div>

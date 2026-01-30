@@ -9,8 +9,8 @@
 :root {
   /* Background */
   --bg-primary: #ffffff;
-  --bg-secondary: #fafbfc;
-  --bg-tertiary: #f4f6f8;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
   --bg-elevated: #ffffff;
   --bg-hover: rgba(0, 0, 0, 0.04);
   --bg-active: rgba(0, 0, 0, 0.06);
@@ -21,24 +21,30 @@
   --border-strong: rgba(0, 0, 0, 0.15);
   
   /* Text */
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-tertiary: #6b7280;
-  --text-muted: #9ca3af;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
   --text-inverse: #ffffff;
   
-  /* Accent */
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-subtle: rgba(37, 99, 235, 0.08);
-  --accent-muted: rgba(37, 99, 235, 0.12);
+  /* Accent - Warmer indigo/violet */
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-light: #818cf8;
+  --accent-subtle: rgba(99, 102, 241, 0.08);
+  --accent-muted: rgba(99, 102, 241, 0.15);
+  
+  /* Brand gradient */
+  --gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
   
   /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
   
   /* Radius */
   --radius-xs: 4px;
@@ -52,6 +58,46 @@
   --transition-fast: 0.1s ease;
   --transition-base: 0.15s ease;
   --transition-slow: 0.25s ease;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Background */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-elevated: #1e293b;
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --bg-active: rgba(255, 255, 255, 0.1);
+    
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    
+    /* Text */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-muted: #64748b;
+    --text-inverse: #0f172a;
+    
+    /* Accent */
+    --accent: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-light: #c7d2fe;
+    --accent-subtle: rgba(129, 140, 248, 0.12);
+    --accent-muted: rgba(129, 140, 248, 0.2);
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.5), 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+    --shadow-focus: 0 0 0 3px rgba(129, 140, 248, 0.3);
+    --shadow-glow: 0 0 20px rgba(129, 140, 248, 0.2);
+  }
 }
 
 body {
@@ -99,13 +145,13 @@ body {
 .logo-mark {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+  background: var(--gradient-brand);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
 }
 
 .logo-text {
@@ -273,6 +319,7 @@ body {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-subtle);
+  box-shadow: var(--shadow-xs);
 }
 
 .sidebar-footer {
@@ -378,7 +425,7 @@ body {
   gap: 8px;
   padding: 0 24px;
   height: 48px;
-  background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+  background: var(--gradient-brand);
   color: white;
   border: none;
   border-radius: var(--radius-lg);
@@ -386,12 +433,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
 }
 
 .search-btn:hover:not(:disabled) {
+  background: var(--gradient-brand-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
 .search-btn:active:not(:disabled) {
@@ -401,6 +449,7 @@ body {
 .search-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: var(--shadow-sm);
 }
 
 .spin {
@@ -521,6 +570,7 @@ body {
   background: var(--accent-subtle);
   border-left: 3px solid var(--accent);
   padding-left: 17px;
+  box-shadow: inset 0 0 0 1px var(--accent-muted);
 }
 
 .result-item.selected .result-arrow {
@@ -668,7 +718,7 @@ body {
    ================================ */
 .preview-panel {
   flex: 1;
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   overflow-y: auto;
 }
 
@@ -700,6 +750,14 @@ body {
 
 .preview-content {
   padding: 32px;
+}
+
+.preview-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
 }
 
 .preview-header {
@@ -798,14 +856,14 @@ body {
 .empty-icon-wrapper {
   width: 72px;
   height: 72px;
-  background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+  background: var(--gradient-brand);
   border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   margin-bottom: 20px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
 .empty-icon-wrapper.subtle {
@@ -835,7 +893,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+  background: var(--gradient-brand);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -843,12 +901,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
 }
 
 .primary-btn:hover {
+  background: var(--gradient-brand-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
 /* ================================
