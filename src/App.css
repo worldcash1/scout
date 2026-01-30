@@ -1078,6 +1078,23 @@ body {
   margin: 0;
 }
 
+.loading-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .preview-open-btn {
   display: inline-flex;
   align-items: center;

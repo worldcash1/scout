@@ -41,6 +41,7 @@ interface SearchResult {
   title: string;
   subtitle: string;
   snippet: string;
+  body?: string;
   date: string;
   url?: string;
   metadata?: Record<string, string>;
@@ -82,6 +83,76 @@ function App() {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [loadingBody, setLoadingBody] = useState(false);
+
+  // Fetch full email body when selected
+  const fetchFullEmail = async (result: SearchResult) => {
+    if (result.body || result.source !== "gmail") {
+      setSelectedResult(result);
+      return;
+    }
+
+    setSelectedResult(result);
+    setLoadingBody(true);
+
+    try {
+      const account = accounts.find(a => a.type === "gmail" && a.email === result.sourceLabel);
+      if (!account) return;
+
+      const res = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${result.id}?format=full`,
+        { headers: { Authorization: `Bearer ${account.accessToken}` } }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Extract body from parts
+        const extractBody = (payload: any): string => {
+          if (payload.body?.data) {
+            return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          }
+          if (payload.parts) {
+            // Prefer plain text
+            for (const part of payload.parts) {
+              if (part.mimeType === "text/plain" && part.body?.data) {
+                return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+              }
+            }
+            // Fall back to HTML (strip tags)
+            for (const part of payload.parts) {
+              if (part.mimeType === "text/html" && part.body?.data) {
+                const html = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+                return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+              }
+            }
+            // Check nested parts
+            for (const part of payload.parts) {
+              if (part.parts) {
+                const nested = extractBody(part);
+                if (nested) return nested;
+              }
+            }
+          }
+          return "";
+        };
+
+        const body = extractBody(data.payload);
+        
+        // Update both results and selectedResult
+        setResults(prev => prev.map(r => 
+          r.id === result.id && r.sourceLabel === result.sourceLabel 
+            ? { ...r, body } 
+            : r
+        ));
+        setSelectedResult(prev => prev ? { ...prev, body } : null);
+      }
+    } catch (e) {
+      console.error("Failed to fetch email body:", e);
+    } finally {
+      setLoadingBody(false);
+    }
+  };
 
   // Apply theme
   useEffect(() => {
@@ -563,7 +634,7 @@ function App() {
                         key={result.id}
                         className={`result-item anim-stagger-item ${selectedResult?.id === result.id ? "selected" : ""} ${isSelected(result.id) ? "bulk-selected" : ""}`}
                         style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
-                        onClick={() => setSelectedResult(result)}
+                        onClick={() => fetchFullEmail(result)}
                       >
                         <button 
                           className={`item-checkbox ${isSelected(result.id) ? 'checked' : ''}`}
@@ -638,7 +709,14 @@ function App() {
                     </div>
                   </div>
                   <div className="preview-body">
-                    <p>{decodeHTML(selectedResult.snippet)}</p>
+                    {loadingBody ? (
+                      <div className="loading-body">
+                        <Loader2 className="spin" size={20} />
+                        <span>Loading email...</span>
+                      </div>
+                    ) : (
+                      <p>{decodeHTML(selectedResult.body || selectedResult.snippet)}</p>
+                    )}
                   </div>
                   {selectedResult.url && (
                     <a 
