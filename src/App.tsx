@@ -18,6 +18,7 @@ import {
   Square,
   CheckSquare,
   Download,
+  MessageCircleHeart,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -421,10 +422,14 @@ function App() {
         </div>
 
         <div className="sidebar-footer">
-          <div className="sidebar-footer-text">
-            Search across all your accounts in one place
-          </div>
-          <div className="version-badge">v1.3 — Illustrations + Bulk</div>
+          <a 
+            href="mailto:namhhca@yahoo.com?subject=Scout%20Feedback&body=Hi%2C%0A%0AI%20have%20some%20feedback%20about%20Scout%3A%0A%0A" 
+            className="feedback-btn"
+          >
+            <MessageCircleHeart size={16} />
+            <span>Send Feedback</span>
+          </a>
+          <div className="version-badge">v1.3</div>
         </div>
       </aside>
 
