@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  Menu,
+  ArrowLeft,
 } from "lucide-react";
 import "./App.css";
 
@@ -68,6 +70,7 @@ function App() {
     const saved = localStorage.getItem("scout-theme");
     return (saved as Theme) || "system";
   });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Apply theme
   useEffect(() => {
@@ -299,8 +302,14 @@ function App() {
 
   return (
     <div className="app">
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+      
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-mark">
@@ -315,6 +324,12 @@ function App() {
               title={`Theme: ${theme}`}
             >
               {getThemeIcon()}
+            </button>
+            <button 
+              className="sidebar-close mobile-only"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X size={20} />
             </button>
           </div>
         </div>
@@ -383,6 +398,12 @@ function App() {
       <main className="main">
         {/* Search Header */}
         <header className="search-header">
+          <button 
+            className="hamburger-btn mobile-only"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
           <div className="search-box">
             <Search size={20} className="search-icon" />
             <input
@@ -521,7 +542,7 @@ function App() {
           </div>
 
           {/* Preview Panel */}
-          <div className="preview-panel">
+          <div className={`preview-panel ${selectedResult ? 'active' : ''}`}>
             {!selectedResult ? (
               <div className="preview-empty">
                 <div className="preview-empty-icon">
@@ -531,6 +552,13 @@ function App() {
               </div>
             ) : (
               <div className="preview-content">
+                {/* Mobile Back Button */}
+                <div className="preview-mobile-header mobile-only">
+                  <button className="back-btn" onClick={() => setSelectedResult(null)}>
+                    <ArrowLeft size={20} />
+                    <span>Back to Results</span>
+                  </button>
+                </div>
                 <div className="preview-card">
                   <div className="preview-header">
                     <span 
