@@ -54,8 +54,8 @@ const SOURCE_CONFIG = {
   whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "#25d366" },
 };
 
-const GMAIL_CLIENT_ID = "1063241264534-laueuqofg3pd192jt13uep2okkf7raq1.apps.googleusercontent.com";
-const GMAIL_CLIENT_SECRET = "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";
+const GMAIL_CLIENT_ID = "1063241264534-20soj16a1sv7u78212f4k3qn4khcbf05.apps.googleusercontent.com";
+const GMAIL_CLIENT_SECRET = "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";
 const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly email";
 
 type Theme = "light" | "dark" | "system";
