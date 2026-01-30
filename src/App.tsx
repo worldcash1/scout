@@ -1,4 +1,19 @@
 import { useState, useEffect } from "react";
+import {
+  Search,
+  Mail,
+  Box,
+  MessageSquare,
+  FolderOpen,
+  MessageCircle,
+  Plus,
+  X,
+  Link2,
+  Inbox,
+  ExternalLink,
+  Loader2,
+  ChevronRight,
+} from "lucide-react";
 import "./App.css";
 
 // Types
@@ -9,7 +24,7 @@ interface GmailAccount {
   color: string;
 }
 
-type ConnectedAccount = GmailAccount; // Will add Dropbox, Slack, etc.
+type ConnectedAccount = GmailAccount;
 
 interface SearchResult {
   id: string;
@@ -25,11 +40,11 @@ interface SearchResult {
 }
 
 const SOURCE_CONFIG = {
-  gmail: { label: "Gmail", icon: "📧", color: "#ea4335" },
-  dropbox: { label: "Dropbox", icon: "📦", color: "#0061fe" },
-  slack: { label: "Slack", icon: "💬", color: "#4a154b" },
-  drive: { label: "Drive", icon: "📁", color: "#1a73e8" },
-  whatsapp: { label: "WhatsApp", icon: "💚", color: "#25d366" },
+  gmail: { label: "Gmail", icon: Mail, color: "#ea4335" },
+  dropbox: { label: "Dropbox", icon: Box, color: "#0061fe" },
+  slack: { label: "Slack", icon: MessageSquare, color: "#4a154b" },
+  drive: { label: "Drive", icon: FolderOpen, color: "#1a73e8" },
+  whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "#25d366" },
 };
 
 const GMAIL_CLIENT_ID = "1063241264534-laueuqofg3pd192jt13uep2okkf7raq1.apps.googleusercontent.com";
@@ -45,13 +60,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>(["gmail", "dropbox", "slack", "drive", "whatsapp"]);
 
-  // Load saved accounts
   useEffect(() => {
     const saved = localStorage.getItem("unified-search-accounts");
     if (saved) setAccounts(JSON.parse(saved));
   }, []);
 
-  // Save accounts
   useEffect(() => {
     localStorage.setItem("unified-search-accounts", JSON.stringify(accounts));
   }, [accounts]);
@@ -72,13 +85,11 @@ function App() {
     window.location.href = authUrl;
   };
 
-  // Handle OAuth callback
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
     
     if (code) {
-      // Clear URL
       window.history.replaceState({}, "", window.location.pathname);
       handleGmailCallback(code);
     }
@@ -148,7 +159,6 @@ function App() {
     
     const allResults: SearchResult[] = [];
 
-    // Search Gmail accounts
     if (activeFilters.includes("gmail")) {
       const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
       
@@ -198,7 +208,6 @@ function App() {
       }));
     }
 
-    // Sort by date
     allResults.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setResults(allResults);
     setLoading(false);
@@ -230,15 +239,31 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
+  // Skeleton loader component
+  const ResultSkeleton = () => (
+    <div className="result-skeleton">
+      <div className="skeleton-header">
+        <div className="skeleton skeleton-badge" />
+        <div className="skeleton skeleton-date" />
+      </div>
+      <div className="skeleton skeleton-title" />
+      <div className="skeleton skeleton-subtitle" />
+      <div className="skeleton skeleton-snippet" />
+    </div>
+  );
+
   return (
     <div className="app">
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="logo">
-            <span className="logo-icon">🐕</span>
+            <div className="logo-mark">
+              <Search size={18} strokeWidth={2.5} />
+            </div>
             <span className="logo-text">Scout</span>
           </div>
+          <span className="logo-badge">Beta</span>
         </div>
 
         <div className="sidebar-section">
@@ -247,48 +272,48 @@ function App() {
           {/* Gmail */}
           <div className="source-group">
             <div className="source-header">
-              <span>{SOURCE_CONFIG.gmail.icon} Gmail</span>
-              <span className="source-count">{gmailCount}</span>
+              <div className="source-header-left">
+                <Mail size={16} />
+                <span>Gmail</span>
+              </div>
+              {gmailCount > 0 && <span className="source-count">{gmailCount}</span>}
             </div>
             {accounts.filter(a => a.type === "gmail").map((account) => (
               <div key={account.email} className="source-item">
                 <div className="source-dot" style={{ backgroundColor: account.color }} />
                 <span className="source-email">{account.email}</span>
-                <button className="source-remove" onClick={() => removeAccount(account)}>×</button>
+                <button className="source-remove" onClick={() => removeAccount(account)}>
+                  <X size={14} />
+                </button>
               </div>
             ))}
             <button className="add-source-btn" onClick={connectGmail}>
-              + Add Gmail
+              <Plus size={14} />
+              <span>Add Gmail Account</span>
             </button>
           </div>
 
-          {/* Coming Soon */}
-          <div className="source-group coming-soon">
-            <div className="source-header">
-              <span>{SOURCE_CONFIG.dropbox.icon} Dropbox</span>
-              <span className="badge">Soon</span>
-            </div>
-          </div>
-          
-          <div className="source-group coming-soon">
-            <div className="source-header">
-              <span>{SOURCE_CONFIG.slack.icon} Slack</span>
-              <span className="badge">Soon</span>
-            </div>
-          </div>
-          
-          <div className="source-group coming-soon">
-            <div className="source-header">
-              <span>{SOURCE_CONFIG.drive.icon} Google Drive</span>
-              <span className="badge">Soon</span>
-            </div>
-          </div>
-          
-          <div className="source-group coming-soon">
-            <div className="source-header">
-              <span>{SOURCE_CONFIG.whatsapp.icon} WhatsApp</span>
-              <span className="badge">Soon</span>
-            </div>
+          {/* Coming Soon Sources */}
+          {(["dropbox", "slack", "drive", "whatsapp"] as const).map((source) => {
+            const config = SOURCE_CONFIG[source];
+            const Icon = config.icon;
+            return (
+              <div key={source} className="source-group coming-soon">
+                <div className="source-header">
+                  <div className="source-header-left">
+                    <Icon size={16} />
+                    <span>{config.label}</span>
+                  </div>
+                  <span className="badge">Soon</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-text">
+            Search across all your accounts in one place
           </div>
         </div>
       </aside>
@@ -298,7 +323,7 @@ function App() {
         {/* Search Header */}
         <header className="search-header">
           <div className="search-box">
-            <span className="search-icon">🔍</span>
+            <Search size={20} className="search-icon" />
             <input
               type="text"
               placeholder="Search across all your accounts..."
@@ -307,30 +332,48 @@ function App() {
               onKeyDown={(e) => e.key === "Enter" && search()}
             />
             {query && (
-              <button className="search-clear" onClick={() => setQuery("")}>×</button>
+              <button className="search-clear" onClick={() => setQuery("")}>
+                <X size={16} />
+              </button>
             )}
           </div>
           <button className="search-btn" onClick={search} disabled={loading || accounts.length === 0}>
-            {loading ? "Searching..." : "Search"}
+            {loading ? (
+              <>
+                <Loader2 size={18} className="spin" />
+                <span>Searching</span>
+              </>
+            ) : (
+              <>
+                <Search size={18} />
+                <span>Search</span>
+              </>
+            )}
           </button>
         </header>
 
         {/* Filter Bar */}
         <div className="filter-bar">
-          <span className="filter-label">Filter:</span>
-          {Object.entries(SOURCE_CONFIG).map(([key, config]) => (
-            <button
-              key={key}
-              className={`filter-chip ${activeFilters.includes(key) ? "active" : ""}`}
-              onClick={() => toggleFilter(key)}
-              style={{ 
-                borderColor: activeFilters.includes(key) ? config.color : undefined,
-                backgroundColor: activeFilters.includes(key) ? `${config.color}15` : undefined
-              }}
-            >
-              {config.icon} {config.label}
-            </button>
-          ))}
+          <span className="filter-label">Sources</span>
+          <div className="filter-chips">
+            {Object.entries(SOURCE_CONFIG).map(([key, config]) => {
+              const Icon = config.icon;
+              const isActive = activeFilters.includes(key);
+              return (
+                <button
+                  key={key}
+                  className={`filter-chip ${isActive ? "active" : ""}`}
+                  onClick={() => toggleFilter(key)}
+                  style={{ 
+                    "--chip-color": config.color,
+                  } as React.CSSProperties}
+                >
+                  <Icon size={14} />
+                  <span>{config.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Results */}
@@ -338,64 +381,80 @@ function App() {
           {/* Results List */}
           <div className="results-list">
             {loading && (
-              <div className="loading-state">
-                <div className="spinner" />
-                <span>Searching {accounts.length} account{accounts.length !== 1 ? "s" : ""}...</span>
+              <div className="results-loading">
+                <ResultSkeleton />
+                <ResultSkeleton />
+                <ResultSkeleton />
+                <ResultSkeleton />
               </div>
             )}
 
             {!loading && accounts.length === 0 && (
               <div className="empty-state">
-                <div className="empty-icon">🔗</div>
+                <div className="empty-icon-wrapper">
+                  <Link2 size={32} />
+                </div>
                 <h3>Connect your accounts</h3>
-                <p>Add Gmail, Dropbox, Slack, and more to search across all your data.</p>
+                <p>Add Gmail, Dropbox, Slack, and more to search across all your data in one place.</p>
                 <button className="primary-btn" onClick={connectGmail}>
-                  {SOURCE_CONFIG.gmail.icon} Connect Gmail
+                  <Mail size={18} />
+                  <span>Connect Gmail</span>
                 </button>
               </div>
             )}
 
             {!loading && accounts.length > 0 && results.length === 0 && query === "" && (
               <div className="empty-state">
-                <div className="empty-icon">🔍</div>
+                <div className="empty-icon-wrapper subtle">
+                  <Search size={32} />
+                </div>
                 <h3>Ready to search</h3>
-                <p>Search across {accounts.length} connected account{accounts.length !== 1 ? "s" : ""}.</p>
+                <p>Search across {accounts.length} connected account{accounts.length !== 1 ? "s" : ""} instantly.</p>
               </div>
             )}
 
             {!loading && results.length === 0 && query !== "" && (
               <div className="empty-state">
-                <div className="empty-icon">📭</div>
+                <div className="empty-icon-wrapper subtle">
+                  <Inbox size={32} />
+                </div>
                 <h3>No results found</h3>
-                <p>Try different keywords or check your filters.</p>
+                <p>Try different keywords or adjust your source filters.</p>
               </div>
             )}
 
             {results.length > 0 && (
               <>
                 <div className="results-header">
-                  <span>{results.length} results</span>
+                  <span className="results-count">{results.length} results</span>
                 </div>
-                {results.map(result => (
-                  <div
-                    key={result.id}
-                    className={`result-item ${selectedResult?.id === result.id ? "selected" : ""}`}
-                    onClick={() => setSelectedResult(result)}
-                  >
-                    <div className="result-source">
-                      <span 
-                        className="source-badge"
-                        style={{ backgroundColor: result.sourceColor }}
+                <div className="results-scroll">
+                  {results.map(result => {
+                    const Icon = SOURCE_CONFIG[result.source].icon;
+                    return (
+                      <div
+                        key={result.id}
+                        className={`result-item ${selectedResult?.id === result.id ? "selected" : ""}`}
+                        onClick={() => setSelectedResult(result)}
                       >
-                        {SOURCE_CONFIG[result.source].icon} {result.sourceLabel.split("@")[0]}
-                      </span>
-                      <span className="result-date">{formatDate(result.date)}</span>
-                    </div>
-                    <div className="result-title">{result.title}</div>
-                    <div className="result-subtitle">{result.subtitle}</div>
-                    <div className="result-snippet">{result.snippet}</div>
-                  </div>
-                ))}
+                        <div className="result-source">
+                          <span 
+                            className="source-badge"
+                            style={{ backgroundColor: result.sourceColor }}
+                          >
+                            <Icon size={12} />
+                            <span>{result.sourceLabel.split("@")[0]}</span>
+                          </span>
+                          <span className="result-date">{formatDate(result.date)}</span>
+                        </div>
+                        <div className="result-title">{result.title}</div>
+                        <div className="result-subtitle">{result.subtitle}</div>
+                        <div className="result-snippet">{result.snippet}</div>
+                        <ChevronRight size={16} className="result-arrow" />
+                      </div>
+                    );
+                  })}
+                </div>
               </>
             )}
           </div>
@@ -404,8 +463,10 @@ function App() {
           <div className="preview-panel">
             {!selectedResult ? (
               <div className="preview-empty">
-                <div className="preview-empty-icon">✉️</div>
-                <p>Select an item to preview</p>
+                <div className="preview-empty-icon">
+                  <Mail size={40} strokeWidth={1.5} />
+                </div>
+                <p>Select a message to preview</p>
               </div>
             ) : (
               <div className="preview-content">
@@ -414,16 +475,26 @@ function App() {
                     className="source-badge large"
                     style={{ backgroundColor: selectedResult.sourceColor }}
                   >
-                    {SOURCE_CONFIG[selectedResult.source].icon} {selectedResult.sourceLabel}
+                    {(() => {
+                      const Icon = SOURCE_CONFIG[selectedResult.source].icon;
+                      return <Icon size={14} />;
+                    })()}
+                    <span>{selectedResult.sourceLabel}</span>
                   </span>
                 </div>
                 <h2 className="preview-title">{selectedResult.title}</h2>
                 <div className="preview-meta">
-                  <span className="preview-from">{selectedResult.subtitle}</span>
-                  <span className="preview-date">{selectedResult.date}</span>
+                  <div className="preview-from">
+                    <span className="preview-from-label">From</span>
+                    <span className="preview-from-value">{selectedResult.subtitle}</span>
+                  </div>
+                  <div className="preview-date-block">
+                    <span className="preview-date-label">Date</span>
+                    <span className="preview-date-value">{selectedResult.date}</span>
+                  </div>
                 </div>
                 <div className="preview-body">
-                  {selectedResult.snippet}
+                  <p>{selectedResult.snippet}</p>
                 </div>
                 {selectedResult.url && (
                   <a 
@@ -432,7 +503,8 @@ function App() {
                     rel="noopener noreferrer"
                     className="preview-open-btn"
                   >
-                    Open in {SOURCE_CONFIG[selectedResult.source].label} →
+                    <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
+                    <ExternalLink size={16} />
                   </a>
                 )}
               </div>
@@ -443,8 +515,10 @@ function App() {
 
       {error && (
         <div className="toast error">
-          {error}
-          <button onClick={() => setError(null)}>×</button>
+          <span>{error}</span>
+          <button onClick={() => setError(null)}>
+            <X size={18} />
+          </button>
         </div>
       )}
     </div>
