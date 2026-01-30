@@ -391,6 +391,7 @@ function App() {
           <div className="sidebar-footer-text">
             Search across all your accounts in one place
           </div>
+          <div className="version-badge">v1.2 — Gemini Design</div>
         </div>
       </aside>
 
