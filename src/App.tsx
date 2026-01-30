@@ -346,9 +346,7 @@ function App() {
       <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <div className="logo-mark">
-              <Search size={18} strokeWidth={2.5} />
-            </div>
+            <img src="/logo.svg" alt="Scout" className="logo-img" />
             <span className="logo-text">Scout</span>
           </div>
           <div className="header-actions">

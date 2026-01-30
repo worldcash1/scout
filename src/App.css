@@ -248,6 +248,12 @@ body {
   box-shadow: var(--shadow-sm), var(--shadow-glow);
 }
 
+.logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+}
+
 .logo-text {
   font-size: 18px;
   font-weight: 700;

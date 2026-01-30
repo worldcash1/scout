@@ -1,0 +1,33 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#FEF3E2"/>
+  
+  <!-- Golden Retriever Face -->
+  <!-- Head shape -->
+  <ellipse cx="100" cy="110" rx="65" ry="60" fill="#D4A853"/>
+  
+  <!-- Ears -->
+  <ellipse cx="45" cy="85" rx="20" ry="35" fill="#C4943D" transform="rotate(-15 45 85)"/>
+  <ellipse cx="155" cy="85" rx="20" ry="35" fill="#C4943D" transform="rotate(15 155 85)"/>
+  
+  <!-- Inner face (lighter) -->
+  <ellipse cx="100" cy="120" rx="45" ry="40" fill="#E8C068"/>
+  
+  <!-- Normal eye (left) -->
+  <circle cx="70" cy="95" r="12" fill="#3D2914"/>
+  <circle cx="73" cy="92" r="4" fill="white"/>
+  
+  <!-- Magnifying glass eye (right) -->
+  <circle cx="130" cy="95" r="16" fill="#E8F4FC" stroke="#3B82F6" stroke-width="4"/>
+  <circle cx="130" cy="95" r="8" fill="#3B82F6" opacity="0.2"/>
+  <line x1="142" y1="107" x2="155" y2="120" stroke="#3B82F6" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- Nose -->
+  <ellipse cx="100" cy="130" rx="12" ry="8" fill="#3D2914"/>
+  
+  <!-- Mouth -->
+  <path d="M 85 145 Q 100 155 115 145" fill="none" stroke="#3D2914" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Tongue (friendly touch) -->
+  <ellipse cx="100" cy="155" rx="8" ry="10" fill="#E57373"/>
+</svg>
