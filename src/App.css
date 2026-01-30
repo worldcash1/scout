@@ -1064,12 +1064,18 @@ body {
 
 .preview-body {
   font-size: 15px;
-  line-height: 1.75;
-  color: var(--text-secondary);
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  padding: 20px 24px;
+  border-radius: var(--radius-lg);
+  margin-top: 20px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .preview-body p {
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .preview-open-btn {

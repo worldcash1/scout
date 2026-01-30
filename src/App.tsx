@@ -46,6 +46,13 @@ interface SearchResult {
   metadata?: Record<string, string>;
 }
 
+// Decode HTML entities
+const decodeHTML = (html: string): string => {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+};
+
 const SOURCE_CONFIG = {
   gmail: { label: "Gmail", icon: Mail, color: "#ea4335" },
   dropbox: { label: "Dropbox", icon: Box, color: "#0061fe" },
@@ -577,7 +584,7 @@ function App() {
                           </div>
                           <div className="result-title">{result.title}</div>
                           <div className="result-subtitle">{result.subtitle}</div>
-                          <div className="result-snippet">{result.snippet}</div>
+                          <div className="result-snippet">{decodeHTML(result.snippet)}</div>
                         </div>
                         <ChevronRight size={16} className="result-arrow" />
                       </div>
@@ -631,7 +638,7 @@ function App() {
                     </div>
                   </div>
                   <div className="preview-body">
-                    <p>{selectedResult.snippet}</p>
+                    <p>{decodeHTML(selectedResult.snippet)}</p>
                   </div>
                   {selectedResult.url && (
                     <a 
