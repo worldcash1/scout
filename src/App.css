@@ -1,5 +1,61 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* ================================
+   ANIMATION VARIABLES
+   ================================ */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+}
+
+/* ================================
+   KEYFRAME ANIMATIONS
+   ================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(16px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes popIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}
+
+/* Animation Classes */
+.anim-fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out-expo) forwards;
+}
+
+.anim-stagger-item {
+  opacity: 0;
+  animation: fadeInUp var(--duration-normal) var(--ease-out-expo) forwards;
+}
+
+.anim-pop-in {
+  animation: popIn var(--duration-normal) var(--ease-out-back) forwards;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -622,6 +678,31 @@ body {
   padding: 14px 20px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.select-all-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.select-all-btn:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.select-all-btn.checked {
+  color: var(--accent);
 }
 
 .results-count {
@@ -642,12 +723,58 @@ body {
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   will-change: transform;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .result-item:hover {
   background: var(--bg-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
+}
+
+.result-item.bulk-selected {
+  background: var(--accent-subtle);
+}
+
+.result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Item Checkbox */
+.item-checkbox {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.result-item:hover .item-checkbox,
+.result-item.bulk-selected .item-checkbox,
+.results-scroll.selection-active .item-checkbox {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.item-checkbox:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.item-checkbox.checked {
+  color: var(--accent);
 }
 
 .result-item.selected {
@@ -957,6 +1084,10 @@ body {
   box-shadow: none;
 }
 
+.empty-illustration {
+  margin-bottom: 16px;
+}
+
 .empty-state h3 {
   font-size: 18px;
   font-weight: 700;
@@ -1029,6 +1160,83 @@ body {
 
 .toast.error {
   background: #dc2626;
+}
+
+/* ================================
+   BULK ACTION BAR
+   ================================ */
+.bulk-action-bar {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(150%);
+  background: var(--text-primary);
+  color: white;
+  padding: 14px 24px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  transition: transform 0.3s var(--ease-out-back);
+}
+
+.bulk-action-bar.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.selection-count {
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.close-selection-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.close-selection-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .toast button {

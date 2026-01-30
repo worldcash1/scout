@@ -8,8 +8,6 @@ import {
   MessageCircle,
   Plus,
   X,
-  Link2,
-  Inbox,
   ExternalLink,
   Loader2,
   ChevronRight,
@@ -17,7 +15,11 @@ import {
   Moon,
   Menu,
   ArrowLeft,
+  Square,
+  CheckSquare,
+  Download,
 } from "lucide-react";
+import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
 
 // Types
@@ -71,6 +73,7 @@ function App() {
     return (saved as Theme) || "system";
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Apply theme
   useEffect(() => {
@@ -279,6 +282,36 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
+  // Bulk selection helpers
+  const isSelected = (id: string) => selectedIds.includes(id);
+  const isAllSelected = results.length > 0 && selectedIds.length === results.length;
+  const isSelectionMode = selectedIds.length > 0;
+
+  const toggleSelection = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSelected(id)) {
+      setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(results.map(r => r.id));
+    }
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const openSelectedResults = () => {
+    results.filter(r => selectedIds.includes(r.id)).forEach(r => {
+      if (r.url) window.open(r.url, '_blank');
+    });
+  };
+
   const toggleCollapse = (source: string) => {
     setCollapsedSources(prev => 
       prev.includes(source) 
@@ -391,7 +424,7 @@ function App() {
           <div className="sidebar-footer-text">
             Search across all your accounts in one place
           </div>
-          <div className="version-badge">v1.2 — Gemini Design</div>
+          <div className="version-badge">v1.3 — Illustrations + Bulk</div>
         </div>
       </aside>
 
@@ -473,10 +506,8 @@ function App() {
             )}
 
             {!loading && accounts.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon-wrapper">
-                  <Link2 size={32} />
-                </div>
+              <div className="empty-state anim-fade-in">
+                <IllustrationConnect width={140} height={140} className="empty-illustration" />
                 <h3>Connect your accounts</h3>
                 <p>Add Gmail, Dropbox, Slack, and more to search across all your data in one place.</p>
                 <button className="primary-btn" onClick={connectGmail}>
@@ -487,20 +518,16 @@ function App() {
             )}
 
             {!loading && accounts.length > 0 && results.length === 0 && query === "" && (
-              <div className="empty-state">
-                <div className="empty-icon-wrapper subtle">
-                  <Search size={32} />
-                </div>
+              <div className="empty-state anim-fade-in">
+                <IllustrationSearch width={140} height={140} className="empty-illustration" />
                 <h3>Ready to search</h3>
                 <p>Search across {accounts.length} connected account{accounts.length !== 1 ? "s" : ""} instantly.</p>
               </div>
             )}
 
             {!loading && results.length === 0 && query !== "" && (
-              <div className="empty-state">
-                <div className="empty-icon-wrapper subtle">
-                  <Inbox size={32} />
-                </div>
+              <div className="empty-state anim-fade-in">
+                <IllustrationNoResults width={140} height={140} className="empty-illustration" />
                 <h3>No results found</h3>
                 <p>Try different keywords or adjust your source filters.</p>
               </div>
@@ -509,30 +536,47 @@ function App() {
             {results.length > 0 && (
               <>
                 <div className="results-header">
-                  <span className="results-count">{results.length} results</span>
+                  <button 
+                    className={`select-all-btn ${isAllSelected ? 'checked' : ''}`}
+                    onClick={toggleSelectAll}
+                  >
+                    {isAllSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                  </button>
+                  <span className="results-count">
+                    {isSelectionMode ? `${selectedIds.length} selected` : `${results.length} results`}
+                  </span>
                 </div>
-                <div className="results-scroll">
-                  {results.map(result => {
+                <div className={`results-scroll ${isSelectionMode ? 'selection-active' : ''}`}>
+                  {results.map((result, index) => {
                     const Icon = SOURCE_CONFIG[result.source].icon;
                     return (
                       <div
                         key={result.id}
-                        className={`result-item ${selectedResult?.id === result.id ? "selected" : ""}`}
+                        className={`result-item anim-stagger-item ${selectedResult?.id === result.id ? "selected" : ""} ${isSelected(result.id) ? "bulk-selected" : ""}`}
+                        style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
                         onClick={() => setSelectedResult(result)}
                       >
-                        <div className="result-source">
-                          <span 
-                            className="source-badge"
-                            style={{ backgroundColor: result.sourceColor }}
-                          >
-                            <Icon size={12} />
-                            <span>{result.sourceLabel.split("@")[0]}</span>
-                          </span>
-                          <span className="result-date">{formatDate(result.date)}</span>
+                        <button 
+                          className={`item-checkbox ${isSelected(result.id) ? 'checked' : ''}`}
+                          onClick={(e) => toggleSelection(result.id, e)}
+                        >
+                          {isSelected(result.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                        </button>
+                        <div className="result-content">
+                          <div className="result-source">
+                            <span 
+                              className="source-badge"
+                              style={{ backgroundColor: result.sourceColor }}
+                            >
+                              <Icon size={12} />
+                              <span>{result.sourceLabel.split("@")[0]}</span>
+                            </span>
+                            <span className="result-date">{formatDate(result.date)}</span>
+                          </div>
+                          <div className="result-title">{result.title}</div>
+                          <div className="result-subtitle">{result.subtitle}</div>
+                          <div className="result-snippet">{result.snippet}</div>
                         </div>
-                        <div className="result-title">{result.title}</div>
-                        <div className="result-subtitle">{result.subtitle}</div>
-                        <div className="result-snippet">{result.snippet}</div>
                         <ChevronRight size={16} className="result-arrow" />
                       </div>
                     );
@@ -613,6 +657,27 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* Bulk Action Bar */}
+      <div className={`bulk-action-bar ${isSelectionMode ? 'visible' : ''}`}>
+        <div className="selection-count">
+          <CheckSquare size={18} />
+          <span>{selectedIds.length} selected</span>
+        </div>
+        <div className="action-buttons">
+          <button className="action-btn" onClick={openSelectedResults}>
+            <ExternalLink size={16} />
+            <span>Open All</span>
+          </button>
+          <button className="action-btn">
+            <Download size={16} />
+            <span>Export</span>
+          </button>
+        </div>
+        <button className="close-selection-btn" onClick={clearSelection}>
+          <X size={18} />
+        </button>
+      </div>
     </div>
   );
 }
