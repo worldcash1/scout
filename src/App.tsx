@@ -63,6 +63,7 @@ function App() {
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>(["gmail", "dropbox", "slack", "drive", "whatsapp"]);
+  const [collapsedSources, setCollapsedSources] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("scout-theme");
     return (saved as Theme) || "system";
@@ -275,6 +276,14 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
+  const toggleCollapse = (source: string) => {
+    setCollapsedSources(prev => 
+      prev.includes(source) 
+        ? prev.filter(s => s !== source)
+        : [...prev, source]
+    );
+  };
+
   // Skeleton loader component
   const ResultSkeleton = () => (
     <div className="result-skeleton">
@@ -315,26 +324,34 @@ function App() {
           
           {/* Gmail */}
           <div className="source-group">
-            <div className="source-header">
+            <div 
+              className="source-header clickable"
+              onClick={() => toggleCollapse('gmail')}
+            >
               <div className="source-header-left">
+                <span className="collapse-icon">{collapsedSources.includes('gmail') ? '▶' : '▼'}</span>
                 <Mail size={16} />
                 <span>Gmail</span>
               </div>
               {gmailCount > 0 && <span className="source-count">{gmailCount}</span>}
             </div>
-            {accounts.filter(a => a.type === "gmail").map((account) => (
-              <div key={account.email} className="source-item">
-                <div className="source-dot" style={{ backgroundColor: account.color }} />
-                <span className="source-email">{account.email}</span>
-                <button className="source-remove" onClick={() => removeAccount(account)}>
-                  <X size={14} />
+            {!collapsedSources.includes('gmail') && (
+              <>
+                {accounts.filter(a => a.type === "gmail").map((account) => (
+                  <div key={account.email} className="source-item">
+                    <div className="source-dot" style={{ backgroundColor: account.color }} />
+                    <span className="source-email">{account.email}</span>
+                    <button className="source-remove" onClick={(e) => { e.stopPropagation(); removeAccount(account); }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button className="add-source-btn" onClick={connectGmail}>
+                  <Plus size={14} />
+                  <span>Add Gmail Account</span>
                 </button>
-              </div>
-            ))}
-            <button className="add-source-btn" onClick={connectGmail}>
-              <Plus size={14} />
-              <span>Add Gmail Account</span>
-            </button>
+              </>
+            )}
           </div>
 
           {/* Coming Soon Sources */}

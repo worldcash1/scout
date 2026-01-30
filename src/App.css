@@ -263,6 +263,22 @@ body {
   margin-bottom: 4px;
 }
 
+.source-header.clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.source-header.clickable:hover {
+  background: var(--bg-hover);
+}
+
+.collapse-icon {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+
 .source-header-left {
   display: flex;
   align-items: center;
