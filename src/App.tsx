@@ -95,7 +95,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.1";
+const APP_VERSION = "5.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1011,7 +1011,7 @@ function App() {
             onClick={() => setShowFeedback(true)}
           >
             <MessageCircleHeart size={16} />
-            <span>Send Feedback</span>
+            <span>Feedback & Requests</span>
           </button>
           <div className="version-badge">v{APP_VERSION}</div>
         </div>
@@ -1500,14 +1500,14 @@ function App() {
         <div className="modal-overlay" onClick={() => !feedbackSending && setShowFeedback(false)}>
           <div className="feedback-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Send Feedback</h3>
+              <h3>Feedback & Requests</h3>
               <button className="modal-close" onClick={() => setShowFeedback(false)}>
                 <X size={20} />
               </button>
             </div>
             <div className="modal-body">
               <textarea
-                placeholder="What's on your mind? Bug reports, feature requests, or just say hi..."
+                placeholder="Request a feature, report a bug, or ask a question..."
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 rows={5}
@@ -1533,7 +1533,7 @@ function App() {
                 ) : (
                   <>
                     <Send size={18} />
-                    <span>Send Feedback</span>
+                    <span>Submit</span>
                   </>
                 )}
               </button>
