@@ -722,6 +722,82 @@ body {
   color: var(--text-secondary);
 }
 
+/* Search Box Wrapper */
+.search-box-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+/* Search History Dropdown */
+.search-history-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-header span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clear-history-btn {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clear-history-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.history-item:hover {
+  background: var(--bg-secondary);
+}
+
+.history-item svg {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
 /* Filter Toggle Button */
 .filter-toggle-btn {
   width: 44px;
@@ -1021,7 +1097,34 @@ body {
   background: var(--bg-secondary);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+}
+
+.sort-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+}
+
+.sort-dropdown select {
+  appearance: none;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding-right: 4px;
+}
+
+.sort-dropdown select:hover {
+  color: var(--text-primary);
+}
+
+.sort-dropdown select:focus {
+  outline: none;
 }
 
 .select-all-btn {

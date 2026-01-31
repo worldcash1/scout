@@ -33,6 +33,9 @@ import {
   Archive,
   Eye,
   EyeOff,
+  Clock,
+  ArrowUpDown,
+  Trash2,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -97,7 +100,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.8";
+const APP_VERSION = "5.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -211,6 +214,15 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(false);
   const [loadingBody, setLoadingBody] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    const saved = localStorage.getItem("scout-search-history");
+    if (saved) {
+      try { return JSON.parse(saved); } catch { return []; }
+    }
+    return [];
+  });
+  const [showHistory, setShowHistory] = useState(false);
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const viewHtml = true; // Always use Rich HTML view
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
@@ -615,6 +627,13 @@ function App() {
   const search = async () => {
     if (!query.trim()) return;
     
+    // Save to search history
+    const trimmedQuery = query.trim();
+    const newHistory = [trimmedQuery, ...searchHistory.filter(h => h !== trimmedQuery)].slice(0, 10);
+    setSearchHistory(newHistory);
+    localStorage.setItem("scout-search-history", JSON.stringify(newHistory));
+    setShowHistory(false);
+    
     setLoading(true);
     setResults([]);
     setSelectedResult(null);
@@ -908,6 +927,13 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
+  // Sort results
+  const sortedResults = [...results].sort((a, b) => {
+    const dateA = new Date(a.date || 0).getTime();
+    const dateB = new Date(b.date || 0).getTime();
+    return sortBy === "newest" ? dateB - dateA : dateA - dateB;
+  });
+
   const toggleCollapse = (source: string) => {
     setCollapsedSources(prev => 
       prev.includes(source) 
@@ -1037,19 +1063,53 @@ function App() {
           >
             <Menu size={24} />
           </button>
-          <div className="search-box">
-            <Search size={20} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search across all your accounts..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && search()}
-            />
-            {query && (
-              <button className="search-clear" onClick={() => setQuery("")}>
-                <X size={16} />
-              </button>
+          <div className="search-box-wrapper">
+            <div className="search-box">
+              <Search size={20} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search across all your accounts..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && search()}
+                onFocus={() => searchHistory.length > 0 && setShowHistory(true)}
+                onBlur={() => setTimeout(() => setShowHistory(false), 150)}
+              />
+              {query && (
+                <button className="search-clear" onClick={() => setQuery("")}>
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            {showHistory && searchHistory.length > 0 && (
+              <div className="search-history-dropdown">
+                <div className="history-header">
+                  <span><Clock size={14} /> Recent searches</span>
+                  <button 
+                    className="clear-history-btn"
+                    onClick={() => {
+                      setSearchHistory([]);
+                      localStorage.removeItem("scout-search-history");
+                      setShowHistory(false);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {searchHistory.map((item, i) => (
+                  <button
+                    key={i}
+                    className="history-item"
+                    onMouseDown={() => {
+                      setQuery(item);
+                      setShowHistory(false);
+                    }}
+                  >
+                    <Clock size={14} />
+                    <span>{item}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
           <button 
@@ -1188,9 +1248,19 @@ function App() {
               <>
                 <div className="results-header">
                   <span className="results-count">{results.length} results</span>
+                  <div className="sort-dropdown">
+                    <ArrowUpDown size={14} />
+                    <select 
+                      value={sortBy} 
+                      onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
+                    >
+                      <option value="newest">Newest first</option>
+                      <option value="oldest">Oldest first</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="results-scroll">
-                  {results.map((result, index) => {
+                  {sortedResults.map((result, index) => {
                     return (
                       <div
                         key={result.id}
