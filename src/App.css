@@ -215,11 +215,35 @@ body {
    ================================ */
 .sidebar {
   width: 280px;
+  min-width: 200px;
+  max-width: 400px;
   background: var(--bg-primary);
-  border-right: 1px solid var(--border-subtle);
+  border-right: none;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+}
+
+/* Sidebar Resize Handle */
+.sidebar-resize-handle {
+  width: 5px;
+  background: var(--border-subtle);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--accent);
+}
+
+.main.resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.main.resizing * {
+  pointer-events: none;
 }
 
 .sidebar-header {

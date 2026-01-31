@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.1";
+const APP_VERSION = "2.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -222,6 +222,10 @@ function App() {
     const saved = localStorage.getItem("scout-list-width");
     return saved ? parseInt(saved) : 420;
   });
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem("scout-sidebar-width");
+    return saved ? parseInt(saved) : 280;
+  });
   const [isResizing, setIsResizing] = useState(false);
   
   // Save accounts to localStorage when they change
@@ -236,7 +240,32 @@ function App() {
     localStorage.setItem("scout-view-html", viewHtml.toString());
   }, [viewHtml]);
 
-  // Handle panel resize
+  // Handle sidebar resize
+  const handleSidebarResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - startX;
+      const newWidth = Math.min(Math.max(startWidth + diff, 200), 400);
+      setSidebarWidth(newWidth);
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      localStorage.setItem("scout-sidebar-width", sidebarWidth.toString());
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+    
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  // Handle list panel resize
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -657,7 +686,7 @@ function App() {
       />
       
       {/* Sidebar */}
-      <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
+      <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`} style={{ width: `${sidebarWidth}px` }}>
         <div className="sidebar-header">
           <div className="logo">
             <img src="/logo.svg" alt="Scout" className="logo-full" />
@@ -744,8 +773,14 @@ function App() {
         </div>
       </aside>
 
+      {/* Sidebar Resize Handle */}
+      <div 
+        className="sidebar-resize-handle"
+        onMouseDown={handleSidebarResizeStart}
+      />
+
       {/* Main Content */}
-      <main className="main">
+      <main className={`main ${isResizing ? 'resizing' : ''}`}>
         {/* Search Header */}
         <header className="search-header">
           <button 
