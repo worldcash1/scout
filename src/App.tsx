@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.4";
+const APP_VERSION = "3.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1325,21 +1325,94 @@ function App() {
                     </span>
                   </div>
                   <h2 className="preview-title">{selectedResult.title}</h2>
-                  <div className="preview-meta">
-                    <div className="preview-from">
-                      <span className="preview-from-label">From</span>
-                      <span className="preview-from-value">
-                        {selectedResult.subtitle}
-                        {selectedResult.metadata?.fromEmail && (
-                          <span className="preview-from-email"> &lt;{selectedResult.metadata.fromEmail}&gt;</span>
-                        )}
-                      </span>
+                  
+                  {/* Drive File Preview */}
+                  {selectedResult.source === "drive" ? (
+                    <div className="drive-preview">
+                      <div className="preview-meta">
+                        <div className="preview-from">
+                          <span className="preview-from-label">Owner</span>
+                          <span className="preview-from-value">{selectedResult.subtitle}</span>
+                        </div>
+                        <div className="preview-date-block">
+                          <span className="preview-date-label">Modified</span>
+                          <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* File Info Card */}
+                      <div className="file-info-card">
+                        <div className="file-type-large">
+                          {selectedResult.metadata?.mimeType?.includes("spreadsheet") ? (
+                            <FileSpreadsheet size={48} className="icon-sheet" />
+                          ) : selectedResult.metadata?.mimeType?.includes("presentation") ? (
+                            <Presentation size={48} className="icon-slides" />
+                          ) : selectedResult.metadata?.mimeType?.includes("document") ? (
+                            <FileText size={48} className="icon-doc" />
+                          ) : selectedResult.metadata?.mimeType?.includes("image") ? (
+                            <Image size={48} className="icon-image" />
+                          ) : selectedResult.metadata?.mimeType?.includes("video") ? (
+                            <Film size={48} className="icon-video" />
+                          ) : selectedResult.metadata?.mimeType?.includes("pdf") ? (
+                            <FileText size={48} className="icon-pdf" />
+                          ) : (
+                            <File size={48} className="icon-file" />
+                          )}
+                        </div>
+                        <div className="file-details">
+                          <span className="file-type-name">{selectedResult.metadata?.fileType || "File"}</span>
+                          {selectedResult.metadata?.fileSize && (
+                            <span className="file-size-info">{selectedResult.metadata.fileSize}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Thumbnail if available */}
+                      {selectedResult.metadata?.thumbnailLink && (
+                        <div className="file-thumbnail">
+                          <img 
+                            src={selectedResult.metadata.thumbnailLink} 
+                            alt="File preview"
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                          />
+                        </div>
+                      )}
+
+                      {/* Drive Actions */}
+                      <div className="preview-actions">
+                        <a 
+                          href={selectedResult.url} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="action-btn primary"
+                        >
+                          <ExternalLink size={16} />
+                          <span>Open in Google Drive</span>
+                        </a>
+                      </div>
                     </div>
-                    <div className="preview-date-block">
-                      <span className="preview-date-label">Date</span>
-                      <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
+                  ) : (
+                    /* Email Preview */
+                    <div className="preview-meta">
+                      <div className="preview-from">
+                        <span className="preview-from-label">From</span>
+                        <span className="preview-from-value">
+                          {selectedResult.subtitle}
+                          {selectedResult.metadata?.fromEmail && (
+                            <span className="preview-from-email"> &lt;{selectedResult.metadata.fromEmail}&gt;</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="preview-date-block">
+                        <span className="preview-date-label">Date</span>
+                        <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Email-specific content */}
+                  {selectedResult.source === "gmail" && (
+                    <>
                   {/* Attachments */}
                   {selectedResult.attachments && selectedResult.attachments.length > 0 && (
                     <div className="attachments-section">
@@ -1400,6 +1473,8 @@ function App() {
                       <p>{cleanEmailBody(decodeHTML(selectedResult.body || selectedResult.snippet))}</p>
                     )}
                   </div>
+                    </>
+                  )}
 
                   {/* Action Buttons */}
                   {selectedResult.source === "gmail" && (
