@@ -44,6 +44,8 @@ interface GmailAccount {
   type: "gmail";
   email: string;
   accessToken: string;
+  refreshToken?: string;
+  tokenExpiry?: number;
   color: string;
 }
 
@@ -122,7 +124,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.9";
+const APP_VERSION = "7.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -645,6 +647,8 @@ function App() {
         type: "gmail",
         email: data.email,
         accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        tokenExpiry: Date.now() + (3500 * 1000), // ~1 hour minus buffer
         color: colors[accounts.filter(a => a.type === "gmail").length % colors.length]
       };
 
@@ -751,8 +755,50 @@ function App() {
     setAccounts(prev => prev.filter(a => !(a.type === account.type && a.email === account.email)));
   };
 
+  // Helper to refresh Google token if expired
+  const getValidGoogleToken = async (account: GmailAccount): Promise<string | null> => {
+    // If token is still valid (with 5 min buffer), use it
+    if (!account.tokenExpiry || Date.now() < account.tokenExpiry - 300000) {
+      return account.accessToken;
+    }
+    
+    // If no refresh token, can't refresh
+    if (!account.refreshToken) {
+      return account.accessToken; // Try anyway, might still work
+    }
+    
+    try {
+      const res = await fetch("/api/google-refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: account.refreshToken }),
+      });
+      
+      if (!res.ok) return account.accessToken;
+      
+      const data = await res.json();
+      
+      // Update account with new token
+      setAccounts(prev => prev.map(a => 
+        a.type === "gmail" && a.email === account.email
+          ? { ...a, accessToken: data.access_token, tokenExpiry: Date.now() + (data.expires_in * 1000) - 60000 }
+          : a
+      ));
+      
+      return data.access_token;
+    } catch {
+      return account.accessToken;
+    }
+  };
+
+  // Track current search to prevent race conditions
+  const searchIdRef = { current: 0 };
+
   const search = async () => {
     if (!query.trim()) return;
+    
+    // Increment search ID to cancel any in-flight searches
+    const currentSearchId = ++searchIdRef.current;
     
     // Save to search history
     const trimmedQuery = query.trim();
@@ -766,12 +812,20 @@ function App() {
     setSelectedResult(null);
     
     const allResults: SearchResult[] = [];
+    
+    // Check if this search was cancelled
+    const isCancelled = () => searchIdRef.current !== currentSearchId;
 
-    if (activeFilters.includes("gmail")) {
+    if (activeFilters.includes("gmail") && !isCancelled()) {
       const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
       
       await Promise.all(gmailAccounts.map(async (account) => {
+        if (isCancelled()) return;
         try {
+          // Get valid token (refresh if needed)
+          const token = await getValidGoogleToken(account);
+          if (!token || isCancelled()) return;
+          
           // Build Gmail query with filters
           let gmailQuery = query;
           
@@ -802,8 +856,10 @@ function App() {
           
           const searchRes = await fetch(
             `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=50`,
-            { headers: { Authorization: `Bearer ${account.accessToken}` } }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
+          
+          if (isCancelled()) return;
 
           if (!searchRes.ok) return;
           const searchData = await searchRes.json();
@@ -817,9 +873,10 @@ function App() {
           }
 
           await Promise.all(messages.map(async (msg: { id: string }) => {
+            if (isCancelled()) return;
             const detailRes = await fetch(
               `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
-              { headers: { Authorization: `Bearer ${account.accessToken}` } }
+              { headers: { Authorization: `Bearer ${token}` } }
             );
             
             if (detailRes.ok) {
@@ -854,7 +911,7 @@ function App() {
     }
 
     // Search Google Drive
-    if (activeFilters.includes("drive")) {
+    if (activeFilters.includes("drive") && !isCancelled()) {
       const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
       
       // Helper to get friendly file type
@@ -896,14 +953,21 @@ function App() {
       };
       
       await Promise.all(gmailAccounts.map(async (account) => {
+        if (isCancelled()) return;
         try {
+          // Get valid token (refresh if needed)
+          const token = await getValidGoogleToken(account);
+          if (!token || isCancelled()) return;
+          
           // Drive search query
           const driveQuery = `fullText contains '${query.replace(/'/g, "\\'")}'`;
           
           const searchRes = await fetch(
             `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(driveQuery)}&fields=files(id,name,mimeType,modifiedTime,webViewLink,iconLink,owners,size,thumbnailLink)&pageSize=20`,
-            { headers: { Authorization: `Bearer ${account.accessToken}` } }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
+          
+          if (isCancelled()) return;
 
           if (!searchRes.ok) return;
           const searchData = await searchRes.json();
@@ -939,10 +1003,11 @@ function App() {
     }
 
     // Search Dropbox
-    if (activeFilters.includes("dropbox")) {
+    if (activeFilters.includes("dropbox") && !isCancelled()) {
       const dropboxAccounts = accounts.filter(a => a.type === "dropbox") as DropboxAccount[];
       
       await Promise.all(dropboxAccounts.map(async (account) => {
+        if (isCancelled()) return;
         try {
           const searchRes = await fetch("https://api.dropboxapi.com/2/files/search_v2", {
             method: "POST",
@@ -1004,17 +1069,20 @@ function App() {
     }
 
     // Search Slack
-    if (activeFilters.includes("slack")) {
+    if (activeFilters.includes("slack") && !isCancelled()) {
       const slackAccounts = accounts.filter(a => a.type === "slack") as SlackAccount[];
       
       await Promise.all(slackAccounts.map(async (account) => {
+        if (isCancelled()) return;
         try {
           // Use API route to avoid CORS
           const searchRes = await fetch("/api/slack-search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query, token: account.accessToken }),
+            body: JSON.stringify({ query: query.trim(), token: account.accessToken }),
           });
+          
+          if (isCancelled()) return;
 
           const searchData = await searchRes.json();
           if (!searchData.ok) {
@@ -1046,6 +1114,9 @@ function App() {
       }));
     }
 
+    // Don't update state if search was cancelled
+    if (isCancelled()) return;
+    
     allResults.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setResults(allResults);
     setLoading(false);
