@@ -25,8 +25,6 @@ import {
   FileText,
   Image,
   File,
-  Eye,
-  Code,
   Filter,
   Calendar,
   User,
@@ -94,7 +92,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -208,10 +206,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loadingBody, setLoadingBody] = useState(false);
-  const [viewHtml, setViewHtml] = useState(() => {
-    const saved = localStorage.getItem("scout-view-html");
-    return saved !== null ? saved === "true" : true; // Default to Rich
-  });
+  const viewHtml = true; // Always use Rich HTML view
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     dateRange: "any",
@@ -234,11 +229,6 @@ function App() {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
     }
   }, [accounts]);
-  
-  // Save view preference
-  useEffect(() => {
-    localStorage.setItem("scout-view-html", viewHtml.toString());
-  }, [viewHtml]);
 
   // Handle sidebar resize
   const handleSidebarResizeStart = (e: React.MouseEvent) => {
@@ -1070,27 +1060,6 @@ function App() {
                   )}
 
                   {/* Email Body */}
-                  {selectedResult.bodyHtml && (
-                    <div className="view-toggle">
-                      <button 
-                        className={`toggle-btn ${viewHtml ? 'active' : ''}`}
-                        onClick={() => setViewHtml(true)}
-                        title="Rich view with images"
-                      >
-                        <Eye size={14} />
-                        <span>Rich</span>
-                      </button>
-                      <button 
-                        className={`toggle-btn ${!viewHtml ? 'active' : ''}`}
-                        onClick={() => setViewHtml(false)}
-                        title="Plain text view"
-                      >
-                        <Code size={14} />
-                        <span>Text</span>
-                      </button>
-                    </div>
-                  )}
-                  
                   <div className="preview-body">
                     {loadingBody ? (
                       <div className="loading-body">
