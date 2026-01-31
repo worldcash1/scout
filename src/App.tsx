@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.9";
+const APP_VERSION = "3.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -228,6 +228,8 @@ function App() {
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   
   // Save accounts to localStorage when they change
   useEffect(() => {
@@ -618,15 +620,22 @@ function App() {
           }
           
           const searchRes = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=20`,
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=50`,
             { headers: { Authorization: `Bearer ${account.accessToken}` } }
           );
 
           if (!searchRes.ok) return;
           const searchData = await searchRes.json();
           const messages = searchData.messages || [];
+          
+          // Store page token for "Load More"
+          if (searchData.nextPageToken) {
+            setNextPageToken(searchData.nextPageToken);
+          } else {
+            setNextPageToken(null);
+          }
 
-          await Promise.all(messages.slice(0, 10).map(async (msg: { id: string }) => {
+          await Promise.all(messages.map(async (msg: { id: string }) => {
             const detailRes = await fetch(
               `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
               { headers: { Authorization: `Bearer ${account.accessToken}` } }
@@ -666,6 +675,91 @@ function App() {
     allResults.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setResults(allResults);
     setLoading(false);
+  };
+
+  // Load more results
+  const loadMore = async () => {
+    if (!nextPageToken || loadingMore) return;
+    
+    setLoadingMore(true);
+    const moreResults: SearchResult[] = [];
+    
+    const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
+    
+    // Build query with filters
+    let gmailQuery = query;
+    if (filters.dateRange !== "any") {
+      const now = new Date();
+      let afterDate: Date;
+      switch (filters.dateRange) {
+        case "day": afterDate = new Date(now.setDate(now.getDate() - 1)); break;
+        case "week": afterDate = new Date(now.setDate(now.getDate() - 7)); break;
+        case "month": afterDate = new Date(now.setMonth(now.getMonth() - 1)); break;
+        case "year": afterDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+        default: afterDate = new Date(0);
+      }
+      const formatted = afterDate.toISOString().split('T')[0].replace(/-/g, '/');
+      gmailQuery += ` after:${formatted}`;
+    }
+    if (filters.hasAttachment) gmailQuery += " has:attachment";
+    if (filters.from.trim()) gmailQuery += ` from:${filters.from.trim()}`;
+    
+    for (const account of gmailAccounts) {
+      try {
+        const searchRes = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=50&pageToken=${nextPageToken}`,
+          { headers: { Authorization: `Bearer ${account.accessToken}` } }
+        );
+
+        if (!searchRes.ok) continue;
+        const searchData = await searchRes.json();
+        const messages = searchData.messages || [];
+        
+        if (searchData.nextPageToken) {
+          setNextPageToken(searchData.nextPageToken);
+        } else {
+          setNextPageToken(null);
+        }
+
+        await Promise.all(messages.map(async (msg: { id: string }) => {
+          const detailRes = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { Authorization: `Bearer ${account.accessToken}` } }
+          );
+          
+          if (detailRes.ok) {
+            const detail = await detailRes.json();
+            const headers = detail.payload?.headers || [];
+            const getHeader = (name: string) => 
+              headers.find((h: {name: string, value: string}) => h.name.toLowerCase() === name.toLowerCase())?.value || "";
+
+            const from = getHeader("From");
+            const fromName = from.match(/^([^<]+)/)?.[1]?.trim().replace(/"/g, "") || from;
+            const fromEmail = from.match(/<([^>]+)>/)?.[1] || "";
+
+            moreResults.push({
+              id: detail.id,
+              source: "gmail",
+              sourceLabel: account.email,
+              sourceColor: account.color,
+              title: getHeader("Subject") || "(No subject)",
+              subtitle: fromName,
+              snippet: detail.snippet || "",
+              date: getHeader("Date"),
+              url: `https://mail.google.com/mail/u/?authuser=${account.email}#inbox/${detail.threadId}`,
+              threadId: detail.threadId,
+              metadata: { account: account.email, messageId: detail.id, fromEmail }
+            });
+          }
+        }));
+      } catch (e) {
+        console.error(`Gmail load more error for ${account.email}:`, e);
+      }
+    }
+    
+    moreResults.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setResults(prev => [...prev, ...moreResults]);
+    setLoadingMore(false);
   };
 
   const formatDate = (dateStr: string) => {
@@ -1058,6 +1152,26 @@ function App() {
                       </div>
                     );
                   })}
+                  
+                  {/* Load More Button */}
+                  {nextPageToken && (
+                    <div className="load-more-container">
+                      <button 
+                        className="load-more-btn"
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                      >
+                        {loadingMore ? (
+                          <>
+                            <Loader2 size={16} className="spin" />
+                            <span>Loading...</span>
+                          </>
+                        ) : (
+                          <span>Load More</span>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}
