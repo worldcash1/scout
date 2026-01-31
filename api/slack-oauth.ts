@@ -5,7 +5,11 @@ const SLACK_CLIENT_SECRET = "e634eb8ae400f133bae91e568930976d";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['https://scout-green-three.vercel.app', 'http://localhost:5173'];
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

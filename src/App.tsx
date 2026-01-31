@@ -129,7 +129,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.8";
+const APP_VERSION = "8.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -866,11 +866,20 @@ function App() {
   // Track current search to prevent race conditions
   const searchIdRef = useRef(0);
   
+  // AbortController for cancelling in-flight requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+  
   // Ref for feedback modal timeout cleanup
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = async () => {
     if (!query.trim()) return;
+    
+    // Abort previous search requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
     
     // Increment search ID to cancel any in-flight searches
     const currentSearchId = ++searchIdRef.current;
@@ -1325,6 +1334,16 @@ function App() {
     });
   }, [results, sortBy]);
 
+  // Memoized regex for search highlighting
+  const highlightRegex = useMemo(() => {
+    if (!query.trim()) return null;
+    try {
+      return new RegExp(`(${escapeRegex(query)})`, 'gi');
+    } catch {
+      return null;
+    }
+  }, [query]);
+
   const toggleCollapse = (source: string) => {
     setCollapsedSources(prev => 
       prev.includes(source) 
@@ -1365,6 +1384,8 @@ function App() {
               className={`privacy-toggle ${privacyMode ? 'active' : ''}`}
               onClick={() => setPrivacyMode(!privacyMode)}
               title={privacyMode ? 'Show content' : 'Hide content'}
+              aria-label={privacyMode ? 'Show content' : 'Hide content'}
+              aria-pressed={privacyMode}
             >
               {privacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -1372,12 +1393,14 @@ function App() {
               className="theme-toggle" 
               onClick={toggleTheme}
               title={`Theme: ${theme}`}
+              aria-label={`Change theme, current: ${theme}`}
             >
               {getThemeIcon()}
             </button>
             <button 
               className="sidebar-close mobile-only"
               onClick={() => setIsSidebarOpen(false)}
+              aria-label="Close sidebar"
             >
               <X size={20} />
             </button>
@@ -1555,7 +1578,7 @@ function App() {
                 onBlur={() => setTimeout(() => setShowHistory(false), 150)}
               />
               {query && (
-                <button className="search-clear" onClick={() => setQuery("")}>
+                <button className="search-clear" onClick={() => setQuery("")} aria-label="Clear search">
                   <X size={16} />
                 </button>
               )}
@@ -1571,6 +1594,7 @@ function App() {
                       localStorage.removeItem("scout-search-history");
                       setShowHistory(false);
                     }}
+                    aria-label="Clear search history"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -2044,7 +2068,7 @@ function App() {
                     <>
                       <div className="slack-message-preview">
                         <div className="slack-message-text">
-                          {query.trim() ? selectedResult.snippet.split(new RegExp(`(${escapeRegex(query)})`, 'gi')).map((part, i) => 
+                          {highlightRegex ? selectedResult.snippet.split(highlightRegex).map((part, i) => 
                             part.toLowerCase() === query.toLowerCase() 
                               ? <mark key={i} className="search-highlight">{part}</mark>
                               : part
@@ -2099,10 +2123,10 @@ function App() {
 
       {/* Feedback Modal */}
       {showFeedback && (
-        <div className="modal-overlay" onClick={() => !feedbackSending && setShowFeedback(false)}>
-          <div className="feedback-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => !feedbackSending && setShowFeedback(false)} role="presentation">
+          <div className="feedback-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="feedback-title">
             <div className="modal-header">
-              <h3>Feedback & Requests</h3>
+              <h3 id="feedback-title">Feedback & Requests</h3>
               <button className="modal-close" onClick={() => setShowFeedback(false)}>
                 <X size={20} />
               </button>

@@ -1,10 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Discord webhook for #errors channel
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1467151909101113548/m4esad-MOtNPl5bG7AS8qEKShNx6LNMB0VI4NS6X17dS8vlWiZJbtdJlEls33U3p6jFu";
+// Discord webhook from env (set in Vercel dashboard)
+const DISCORD_WEBHOOK = process.env.DISCORD_ERROR_WEBHOOK || "";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['https://scout-green-three.vercel.app', 'http://localhost:5173'];
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
