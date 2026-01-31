@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "4.8";
+const APP_VERSION = "4.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
