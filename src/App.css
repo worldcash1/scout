@@ -1197,6 +1197,49 @@ body {
   border-color: var(--accent-hover);
 }
 
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Email Iframe */
+.email-iframe {
+  width: 100%;
+  min-height: 400px;
+  height: auto;
+  border: none;
+  background: white;
+  border-radius: var(--radius-md);
+}
+
 .preview-open-btn {
   display: inline-flex;
   align-items: center;

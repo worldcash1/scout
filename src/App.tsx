@@ -25,6 +25,8 @@ import {
   FileText,
   Image,
   File,
+  Eye,
+  Code,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -89,7 +91,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "1.5";
+const APP_VERSION = "1.6";
 
 // Clean up email body for display
 const cleanEmailBody = (text: string): string => {
@@ -162,6 +164,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loadingBody, setLoadingBody] = useState(false);
+  const [viewHtml, setViewHtml] = useState(true); // Default to HTML view for rich emails
 
   // Fetch full email body when selected
   const fetchFullEmail = async (result: SearchResult) => {
@@ -850,12 +853,40 @@ function App() {
                   )}
 
                   {/* Email Body */}
+                  {selectedResult.bodyHtml && (
+                    <div className="view-toggle">
+                      <button 
+                        className={`toggle-btn ${viewHtml ? 'active' : ''}`}
+                        onClick={() => setViewHtml(true)}
+                        title="Rich view with images"
+                      >
+                        <Eye size={14} />
+                        <span>Rich</span>
+                      </button>
+                      <button 
+                        className={`toggle-btn ${!viewHtml ? 'active' : ''}`}
+                        onClick={() => setViewHtml(false)}
+                        title="Plain text view"
+                      >
+                        <Code size={14} />
+                        <span>Text</span>
+                      </button>
+                    </div>
+                  )}
+                  
                   <div className="preview-body">
                     {loadingBody ? (
                       <div className="loading-body">
                         <Loader2 className="spin" size={20} />
                         <span>Loading email...</span>
                       </div>
+                    ) : viewHtml && selectedResult.bodyHtml ? (
+                      <iframe
+                        srcDoc={selectedResult.bodyHtml}
+                        className="email-iframe"
+                        sandbox="allow-same-origin"
+                        title="Email content"
+                      />
                     ) : (
                       <p>{cleanEmailBody(decodeHTML(selectedResult.body || selectedResult.snippet))}</p>
                     )}
