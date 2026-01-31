@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "4.2";
+const APP_VERSION = "4.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1349,59 +1349,51 @@ function App() {
                   </button>
                 </div>
                 <div className="preview-card">
-                  <div className="preview-header">
+                  {/* Compact Header */}
+                  <div className="preview-header-compact">
                     <span 
-                      className="source-badge large"
+                      className="source-badge"
                       style={{ backgroundColor: SOURCE_CONFIG[selectedResult.source].color }}
                     >
                       {(() => {
                         const Icon = SOURCE_CONFIG[selectedResult.source].icon;
-                        return <Icon size={14} />;
+                        return <Icon size={12} />;
                       })()}
                       <span>{selectedResult.sourceLabel}</span>
                     </span>
+                    <span className="preview-date-compact">{formatRelativeDate(selectedResult.date)}</span>
                   </div>
-                  <h2 className="preview-title">{selectedResult.title}</h2>
+                  <h2 className="preview-title-compact">{selectedResult.title}</h2>
                   
                   {/* Drive File Preview */}
                   {selectedResult.source === "drive" ? (
                     <div className="drive-preview">
-                      <div className="preview-meta">
-                        <div className="preview-from">
-                          <span className="preview-from-label">Owner</span>
-                          <span className="preview-from-value">{selectedResult.subtitle}</span>
-                        </div>
-                        <div className="preview-date-block">
-                          <span className="preview-date-label">Modified</span>
-                          <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
-                        </div>
-                      </div>
-                      
-                      {/* File Info Card */}
-                      <div className="file-info-card">
-                        <div className="file-type-large">
+                      <div className="preview-meta-compact">
+                        <span className="meta-item">
+                          <User size={14} />
+                          <span>{selectedResult.subtitle}</span>
+                        </span>
+                        <span className="meta-separator">•</span>
+                        <span className="meta-item">
                           {selectedResult.metadata?.mimeType?.includes("spreadsheet") ? (
-                            <FileSpreadsheet size={48} className="icon-sheet" />
+                            <FileSpreadsheet size={14} className="icon-sheet" />
                           ) : selectedResult.metadata?.mimeType?.includes("presentation") ? (
-                            <Presentation size={48} className="icon-slides" />
+                            <Presentation size={14} className="icon-slides" />
                           ) : selectedResult.metadata?.mimeType?.includes("document") ? (
-                            <FileText size={48} className="icon-doc" />
-                          ) : selectedResult.metadata?.mimeType?.includes("image") ? (
-                            <Image size={48} className="icon-image" />
-                          ) : selectedResult.metadata?.mimeType?.includes("video") ? (
-                            <Film size={48} className="icon-video" />
+                            <FileText size={14} className="icon-doc" />
                           ) : selectedResult.metadata?.mimeType?.includes("pdf") ? (
-                            <FileText size={48} className="icon-pdf" />
+                            <FileText size={14} className="icon-pdf" />
                           ) : (
-                            <File size={48} className="icon-file" />
+                            <File size={14} />
                           )}
-                        </div>
-                        <div className="file-details">
-                          <span className="file-type-name">{selectedResult.metadata?.fileType || "File"}</span>
-                          {selectedResult.metadata?.fileSize && (
-                            <span className="file-size-info">{selectedResult.metadata.fileSize}</span>
-                          )}
-                        </div>
+                          <span>{selectedResult.metadata?.fileType || "File"}</span>
+                        </span>
+                        {selectedResult.metadata?.fileSize && (
+                          <>
+                            <span className="meta-separator">•</span>
+                            <span className="meta-item">{selectedResult.metadata.fileSize}</span>
+                          </>
+                        )}
                       </div>
 
                       {/* Thumbnail if available */}
@@ -1443,21 +1435,15 @@ function App() {
                       </div>
                     </div>
                   ) : (
-                    /* Email Preview */
-                    <div className="preview-meta">
-                      <div className="preview-from">
-                        <span className="preview-from-label">From</span>
-                        <span className="preview-from-value">
-                          {selectedResult.subtitle}
-                          {selectedResult.metadata?.fromEmail && (
-                            <span className="preview-from-email"> &lt;{selectedResult.metadata.fromEmail}&gt;</span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="preview-date-block">
-                        <span className="preview-date-label">Date</span>
-                        <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
-                      </div>
+                    /* Email Preview - Compact Meta */
+                    <div className="preview-meta-compact">
+                      <span className="meta-item">
+                        <User size={14} />
+                        <span>{selectedResult.subtitle}</span>
+                        {selectedResult.metadata?.fromEmail && (
+                          <span className="meta-email">&lt;{selectedResult.metadata.fromEmail}&gt;</span>
+                        )}
+                      </span>
                     </div>
                   )}
 

@@ -1468,6 +1468,61 @@ body {
   max-width: 800px;
 }
 
+/* Compact Preview Header */
+.preview-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.preview-date-compact {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.preview-title-compact {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.preview-meta-compact {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.meta-item svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.meta-separator {
+  color: var(--text-muted);
+}
+
+.meta-email {
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* Legacy styles (keep for compatibility) */
 .preview-header {
   margin-bottom: 20px;
 }
