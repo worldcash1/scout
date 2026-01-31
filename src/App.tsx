@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.5";
+const APP_VERSION = "2.6";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -602,6 +602,7 @@ function App() {
 
               const from = getHeader("From");
               const fromName = from.match(/^([^<]+)/)?.[1]?.trim().replace(/"/g, "") || from;
+              const fromEmail = from.match(/<([^>]+)>/)?.[1] || "";
 
               allResults.push({
                 id: detail.id,
@@ -614,7 +615,7 @@ function App() {
                 date: getHeader("Date"),
                 url: `https://mail.google.com/mail/u/?authuser=${account.email}#inbox/${detail.threadId}`,
                 threadId: detail.threadId,
-                metadata: { account: account.email, messageId: detail.id }
+                metadata: { account: account.email, messageId: detail.id, fromEmail }
               });
             }
           }));
@@ -1060,7 +1061,12 @@ function App() {
                   <div className="preview-meta">
                     <div className="preview-from">
                       <span className="preview-from-label">From</span>
-                      <span className="preview-from-value">{selectedResult.subtitle}</span>
+                      <span className="preview-from-value">
+                        {selectedResult.subtitle}
+                        {selectedResult.metadata?.fromEmail && (
+                          <span className="preview-from-email"> &lt;{selectedResult.metadata.fromEmail}&gt;</span>
+                        )}
+                      </span>
                     </div>
                     <div className="preview-date-block">
                       <span className="preview-date-label">Date</span>
