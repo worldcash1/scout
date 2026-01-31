@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -660,7 +660,7 @@ function App() {
                 id: detail.id,
                 source: "gmail",
                 sourceLabel: account.email,
-                sourceColor: account.color,
+                sourceColor: SOURCE_CONFIG.gmail.color,
                 title: getHeader("Subject") || "(No subject)",
                 subtitle: fromName,
                 snippet: detail.snippet || "",
@@ -831,7 +831,7 @@ function App() {
               id: detail.id,
               source: "gmail",
               sourceLabel: account.email,
-              sourceColor: account.color,
+              sourceColor: SOURCE_CONFIG.gmail.color,
               title: getHeader("Subject") || "(No subject)",
               subtitle: fromName,
               snippet: detail.snippet || "",
