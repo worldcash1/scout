@@ -70,8 +70,26 @@ const decodeHTML = (html: string): string => {
   return txt.value;
 };
 
+// Properly decode base64 with UTF-8 support
+const decodeBase64UTF8 = (base64: string): string => {
+  try {
+    // Convert base64 to binary
+    const binary = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+    // Convert binary to UTF-8
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    // Decode as UTF-8
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch (e) {
+    // Fallback to simple atob
+    return atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+  }
+};
+
 // App version
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.5";
 
 // Clean up email body for display
 const cleanEmailBody = (text: string): string => {
@@ -185,7 +203,7 @@ function App() {
           
           // Extract text content
           if (payload.body?.data) {
-            const decoded = atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            const decoded = decodeBase64UTF8(payload.body.data);
             if (payload.mimeType === "text/plain") {
               plainText = decoded;
             } else if (payload.mimeType === "text/html") {
