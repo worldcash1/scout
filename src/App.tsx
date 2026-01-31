@@ -129,7 +129,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.6";
+const APP_VERSION = "7.7";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -285,6 +285,39 @@ function App() {
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
       }
+    };
+  }, []);
+
+  // Global error logging - sends errors to API for monitoring
+  useEffect(() => {
+    const logError = (message: string, stack?: string) => {
+      fetch('/api/log-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          stack,
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(() => {}); // Silent fail
+    };
+
+    const handleError = (event: ErrorEvent) => {
+      logError(event.message, event.error?.stack);
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      logError(String(event.reason), event.reason?.stack);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
