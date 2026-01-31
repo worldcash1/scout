@@ -122,7 +122,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.8";
+const APP_VERSION = "6.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -721,7 +721,6 @@ function App() {
       });
 
       const data = await tokenRes.json();
-      console.log("Slack OAuth response:", data);
       if (!data.ok) throw new Error(data.error || "Slack auth failed");
 
       const newAccount: SlackAccount = {
