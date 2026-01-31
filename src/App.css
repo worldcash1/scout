@@ -1092,6 +1092,16 @@ body {
   margin-bottom: 2px;
 }
 
+.result-row-1-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attachment-indicator {
+  color: var(--text-muted);
+}
+
 .result-sender {
   font-size: 13px;
   font-weight: 600;

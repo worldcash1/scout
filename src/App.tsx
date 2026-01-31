@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1035,7 +1035,12 @@ function App() {
                         <div className="result-content">
                           <div className="result-row-1">
                             <span className="result-sender">{result.subtitle}</span>
-                            <span className="result-date">{formatDate(result.date)}</span>
+                            <div className="result-row-1-right">
+                              {result.attachments && result.attachments.length > 0 && (
+                                <Paperclip size={14} className="attachment-indicator" />
+                              )}
+                              <span className="result-date">{formatDate(result.date)}</span>
+                            </div>
                           </div>
                           <div className="result-row-2">
                             <span className="result-title">{result.title}</span>
