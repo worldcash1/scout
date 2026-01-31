@@ -991,17 +991,21 @@ body {
 
 .result-item {
   position: relative;
-  padding: var(--space-3) var(--space-4);
+  padding: 10px var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
 }
 
 .result-item:hover {
-  background: var(--bg-hover);
+  background: var(--bg-secondary);
+}
+
+.result-item:active {
+  background: var(--bg-tertiary);
 }
 
 .result-item.bulk-selected {
@@ -1053,6 +1057,10 @@ body {
   padding-left: 13px;
 }
 
+.result-item.selected:hover {
+  background: var(--accent-muted);
+}
+
 .result-item.selected .result-arrow {
   opacity: 1;
   color: var(--accent);
@@ -1095,6 +1103,7 @@ body {
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .result-title {
@@ -1315,7 +1324,7 @@ body {
 }
 
 .result-sender {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -1327,25 +1336,27 @@ body {
   display: flex;
   align-items: baseline;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  line-height: 1.4;
 }
 
 .result-row-2 .result-title {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0;
   padding-right: 0;
   flex-shrink: 0;
-  max-width: 60%;
+  max-width: 55%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .result-snippet-inline {
-  font-size: 13px;
-  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1356,14 +1367,14 @@ body {
 .result-account {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 5px;
+  font-size: 10px;
   color: var(--text-muted);
 }
 
 .source-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
