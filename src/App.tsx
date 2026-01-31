@@ -30,6 +30,11 @@ import {
   User,
   Check,
   Send,
+  FileSpreadsheet,
+  Presentation,
+  Film,
+  Music,
+  Archive,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -94,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.2";
+const APP_VERSION = "3.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -676,13 +681,51 @@ function App() {
     if (activeFilters.includes("drive")) {
       const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
       
+      // Helper to get friendly file type
+      const getFileType = (mimeType: string): string => {
+        const types: Record<string, string> = {
+          "application/vnd.google-apps.document": "Google Doc",
+          "application/vnd.google-apps.spreadsheet": "Google Sheet",
+          "application/vnd.google-apps.presentation": "Google Slides",
+          "application/vnd.google-apps.form": "Google Form",
+          "application/vnd.google-apps.folder": "Folder",
+          "application/pdf": "PDF",
+          "image/jpeg": "Image",
+          "image/png": "Image",
+          "image/gif": "Image",
+          "video/mp4": "Video",
+          "audio/mpeg": "Audio",
+          "text/plain": "Text File",
+          "text/html": "HTML",
+          "text/css": "CSS",
+          "text/javascript": "JavaScript",
+          "application/javascript": "JavaScript",
+          "application/json": "JSON",
+          "text/markdown": "Markdown",
+          "application/zip": "ZIP Archive",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "Word Doc",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "Excel",
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PowerPoint",
+        };
+        return types[mimeType] || mimeType.split("/").pop()?.split(".").pop() || "File";
+      };
+      
+      // Helper to format file size
+      const formatFileSize = (bytes: number): string => {
+        if (!bytes) return "";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+      };
+      
       await Promise.all(gmailAccounts.map(async (account) => {
         try {
           // Drive search query
           const driveQuery = `fullText contains '${query.replace(/'/g, "\\'")}'`;
           
           const searchRes = await fetch(
-            `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(driveQuery)}&fields=files(id,name,mimeType,modifiedTime,webViewLink,iconLink,owners)&pageSize=20`,
+            `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(driveQuery)}&fields=files(id,name,mimeType,modifiedTime,webViewLink,iconLink,owners,size,thumbnailLink)&pageSize=20`,
             { headers: { Authorization: `Bearer ${account.accessToken}` } }
           );
 
@@ -690,7 +733,10 @@ function App() {
           const searchData = await searchRes.json();
           const files = searchData.files || [];
 
-          files.forEach((file: { id: string; name: string; mimeType: string; modifiedTime: string; webViewLink: string; owners?: { displayName: string }[] }) => {
+          files.forEach((file: { id: string; name: string; mimeType: string; modifiedTime: string; webViewLink: string; owners?: { displayName: string }[]; size?: string; thumbnailLink?: string }) => {
+            const fileType = getFileType(file.mimeType);
+            const fileSize = file.size ? formatFileSize(parseInt(file.size)) : "";
+            
             allResults.push({
               id: `drive-${file.id}`,
               source: "drive",
@@ -698,10 +744,16 @@ function App() {
               sourceColor: SOURCE_CONFIG.drive.color,
               title: file.name,
               subtitle: file.owners?.[0]?.displayName || "Me",
-              snippet: file.mimeType.replace("application/vnd.google-apps.", "").replace("application/", ""),
+              snippet: fileSize ? `${fileType} • ${fileSize}` : fileType,
               date: file.modifiedTime,
               url: file.webViewLink,
-              metadata: { account: account.email }
+              metadata: { 
+                account: account.email,
+                fileType,
+                fileSize,
+                thumbnailLink: file.thumbnailLink || "",
+                mimeType: file.mimeType
+              }
             });
           });
         } catch (e) {
@@ -1172,6 +1224,29 @@ function App() {
                             </div>
                           </div>
                           <div className="result-row-2">
+                            {result.source === "drive" && (
+                              <span className="file-type-icon">
+                                {result.metadata?.mimeType?.includes("spreadsheet") || result.metadata?.mimeType?.includes("excel") ? (
+                                  <FileSpreadsheet size={14} className="icon-sheet" />
+                                ) : result.metadata?.mimeType?.includes("presentation") || result.metadata?.mimeType?.includes("powerpoint") ? (
+                                  <Presentation size={14} className="icon-slides" />
+                                ) : result.metadata?.mimeType?.includes("document") || result.metadata?.mimeType?.includes("word") ? (
+                                  <FileText size={14} className="icon-doc" />
+                                ) : result.metadata?.mimeType?.includes("image") ? (
+                                  <Image size={14} className="icon-image" />
+                                ) : result.metadata?.mimeType?.includes("video") ? (
+                                  <Film size={14} className="icon-video" />
+                                ) : result.metadata?.mimeType?.includes("audio") ? (
+                                  <Music size={14} className="icon-audio" />
+                                ) : result.metadata?.mimeType?.includes("zip") || result.metadata?.mimeType?.includes("archive") ? (
+                                  <Archive size={14} className="icon-archive" />
+                                ) : result.metadata?.mimeType?.includes("pdf") ? (
+                                  <FileText size={14} className="icon-pdf" />
+                                ) : (
+                                  <File size={14} className="icon-file" />
+                                )}
+                              </span>
+                            )}
                             <span className="result-title">{result.title}</span>
                             <span className="result-snippet-inline"> — {decodeHTML(result.snippet)}</span>
                           </div>

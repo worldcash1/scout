@@ -1150,6 +1150,24 @@ body {
   color: var(--text-muted);
 }
 
+/* File Type Icons */
+.file-type-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.icon-doc { color: #4285f4; }
+.icon-sheet { color: #0f9d58; }
+.icon-slides { color: #f4b400; }
+.icon-pdf { color: #ea4335; }
+.icon-image { color: #4285f4; }
+.icon-video { color: #ea4335; }
+.icon-audio { color: #ab47bc; }
+.icon-archive { color: #795548; }
+.icon-file { color: var(--text-muted); }
+
 /* Load More Button */
 .load-more-container {
   padding: 16px 20px;
