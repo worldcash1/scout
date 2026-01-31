@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.2";
+const APP_VERSION = "2.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -728,7 +728,7 @@ function App() {
               <>
                 {accounts.filter(a => a.type === "gmail").map((account) => (
                   <div key={account.email} className="source-item">
-                    <div className="source-dot" style={{ backgroundColor: account.color }} />
+                    <div className="source-dot" style={{ backgroundColor: SOURCE_CONFIG.gmail.color }} />
                     <span className="source-email">{account.email}</span>
                     <button className="source-remove" onClick={(e) => { e.stopPropagation(); removeAccount(account); }}>
                       <X size={14} />
