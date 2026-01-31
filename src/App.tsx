@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   Mail,
@@ -124,7 +124,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.0";
+const APP_VERSION = "7.1";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -269,6 +269,8 @@ function App() {
   useEffect(() => {
     if (accounts.length > 0) {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
+    } else {
+      localStorage.removeItem("scout-accounts"); // Clean up when empty
     }
   }, [accounts]);
 
@@ -557,15 +559,6 @@ function App() {
       : <Sun size={18} />;
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem("unified-search-accounts");
-    if (saved) setAccounts(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("unified-search-accounts", JSON.stringify(accounts));
-  }, [accounts]);
-
   const getRedirectUri = () => {
     return window.location.origin + window.location.pathname;
   };
@@ -792,7 +785,7 @@ function App() {
   };
 
   // Track current search to prevent race conditions
-  const searchIdRef = { current: 0 };
+  const searchIdRef = useRef(0);
 
   const search = async () => {
     if (!query.trim()) return;
@@ -810,6 +803,7 @@ function App() {
     setLoading(true);
     setResults([]);
     setSelectedResult(null);
+    setNextPageToken(null); // Reset pagination for new search
     
     const allResults: SearchResult[] = [];
     
