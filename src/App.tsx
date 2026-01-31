@@ -15,13 +15,9 @@ import {
   Moon,
   Menu,
   ArrowLeft,
-  Square,
-  CheckSquare,
   Download,
   MessageCircleHeart,
   Paperclip,
-  Reply,
-  Forward,
   FileText,
   Image,
   File,
@@ -99,7 +95,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.0";
+const APP_VERSION = "5.1";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -211,7 +207,6 @@ function App() {
     return (saved as Theme) || "system";
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loadingBody, setLoadingBody] = useState(false);
   const viewHtml = true; // Always use Rich HTML view
   const [showFilters, setShowFilters] = useState(false);
@@ -910,36 +905,6 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
-  // Bulk selection helpers
-  const isSelected = (id: string) => selectedIds.includes(id);
-  const isAllSelected = results.length > 0 && selectedIds.length === results.length;
-  const isSelectionMode = selectedIds.length > 0;
-
-  const toggleSelection = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isSelected(id)) {
-      setSelectedIds(selectedIds.filter(itemId => itemId !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
-    }
-  };
-
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(results.map(r => r.id));
-    }
-  };
-
-  const clearSelection = () => setSelectedIds([]);
-
-  const openSelectedResults = () => {
-    results.filter(r => selectedIds.includes(r.id)).forEach(r => {
-      if (r.url) window.open(r.url, '_blank');
-    });
-  };
-
   const toggleCollapse = (source: string) => {
     setCollapsedSources(prev => 
       prev.includes(source) 
@@ -1212,31 +1177,17 @@ function App() {
             {results.length > 0 && (
               <>
                 <div className="results-header">
-                  <button 
-                    className={`select-all-btn ${isAllSelected ? 'checked' : ''}`}
-                    onClick={toggleSelectAll}
-                  >
-                    {isAllSelected ? <CheckSquare size={18} /> : <Square size={18} />}
-                  </button>
-                  <span className="results-count">
-                    {isSelectionMode ? `${selectedIds.length} selected` : `${results.length} results`}
-                  </span>
+                  <span className="results-count">{results.length} results</span>
                 </div>
-                <div className={`results-scroll ${isSelectionMode ? 'selection-active' : ''}`}>
+                <div className="results-scroll">
                   {results.map((result, index) => {
                     return (
                       <div
                         key={result.id}
-                        className={`result-item anim-stagger-item ${selectedResult?.id === result.id ? "selected" : ""} ${isSelected(result.id) ? "bulk-selected" : ""}`}
+                        className={`result-item anim-stagger-item ${selectedResult?.id === result.id ? "selected" : ""}`}
                         style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
                         onClick={() => fetchFullEmail(result)}
                       >
-                        <button 
-                          className={`item-checkbox ${isSelected(result.id) ? 'checked' : ''}`}
-                          onClick={(e) => toggleSelection(result.id, e)}
-                        >
-                          {isSelected(result.id) ? <CheckSquare size={18} /> : <Square size={18} />}
-                        </button>
                         <div className="result-content">
                           <div className="result-row-1">
                             <span className="result-sender">{result.subtitle}</span>
@@ -1500,27 +1451,9 @@ function App() {
                     </>
                   )}
 
-                  {/* Action Buttons */}
+                  {/* Action Button */}
                   {selectedResult.source === "gmail" && (
                     <div className="preview-actions">
-                      <a 
-                        href={`https://mail.google.com/mail/u/${selectedResult.sourceLabel}/?view=cm&fs=1&to=&su=Re: ${encodeURIComponent(selectedResult.title)}&body=${encodeURIComponent('\n\n--- Original Message ---\n' + (selectedResult.body || selectedResult.snippet).substring(0, 500))}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="action-btn"
-                      >
-                        <Reply size={16} />
-                        <span>Reply</span>
-                      </a>
-                      <a 
-                        href={`https://mail.google.com/mail/u/${selectedResult.sourceLabel}/?view=cm&fs=1&to=&su=Fwd: ${encodeURIComponent(selectedResult.title)}&body=${encodeURIComponent('\n\n--- Forwarded Message ---\nFrom: ' + selectedResult.subtitle + '\nSubject: ' + selectedResult.title + '\n\n' + (selectedResult.body || selectedResult.snippet).substring(0, 500))}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="action-btn"
-                      >
-                        <Forward size={16} />
-                        <span>Forward</span>
-                      </a>
                       <a 
                         href={selectedResult.url} 
                         target="_blank" 
@@ -1608,27 +1541,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {/* Bulk Action Bar */}
-      <div className={`bulk-action-bar ${isSelectionMode ? 'visible' : ''}`}>
-        <div className="selection-count">
-          <CheckSquare size={18} />
-          <span>{selectedIds.length} selected</span>
-        </div>
-        <div className="action-buttons">
-          <button className="action-btn" onClick={openSelectedResults}>
-            <ExternalLink size={16} />
-            <span>Open All</span>
-          </button>
-          <button className="action-btn">
-            <Download size={16} />
-            <span>Export</span>
-          </button>
-        </div>
-        <button className="close-selection-btn" onClick={clearSelection}>
-          <X size={18} />
-        </button>
-      </div>
     </div>
   );
 }
