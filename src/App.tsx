@@ -95,7 +95,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.2";
+const APP_VERSION = "5.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1433,9 +1433,13 @@ function App() {
                   {/* Email Body */}
                   <div className="preview-body">
                     {loadingBody ? (
-                      <div className="loading-body">
-                        <Loader2 className="spin" size={20} />
-                        <span>Loading email...</span>
+                      <div className="preview-skeleton">
+                        <div className="skeleton skeleton-line w-full" />
+                        <div className="skeleton skeleton-line w-90" />
+                        <div className="skeleton skeleton-line w-95" />
+                        <div className="skeleton skeleton-line w-80" />
+                        <div className="skeleton skeleton-line w-full" />
+                        <div className="skeleton skeleton-line w-70" />
                       </div>
                     ) : viewHtml && selectedResult.bodyHtml ? (
                       <iframe

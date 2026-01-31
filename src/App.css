@@ -1472,6 +1472,25 @@ body {
   100% { background-position: -200% 0; }
 }
 
+/* Preview Skeleton */
+.preview-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.skeleton-line.w-full { width: 100%; }
+.skeleton-line.w-95 { width: 95%; }
+.skeleton-line.w-90 { width: 90%; }
+.skeleton-line.w-80 { width: 80%; }
+.skeleton-line.w-70 { width: 70%; }
+
 /* ================================
    PREVIEW PANEL
    ================================ */
