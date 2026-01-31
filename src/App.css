@@ -1236,6 +1236,16 @@ body {
   border-top: none;
 }
 
+.drive-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.drive-actions .action-btn {
+  cursor: pointer;
+}
+
 /* Google Account with Services */
 .google-account {
   flex-wrap: wrap;

@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.8";
+const APP_VERSION = "3.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1451,8 +1451,9 @@ function App() {
                       )}
 
                       {/* Drive Actions */}
-                      <div className="preview-actions">
+                      <div className="preview-actions drive-actions">
                         <button
+                          type="button"
                           className="action-btn"
                           onClick={() => downloadDriveFile(
                             selectedResult.id,
