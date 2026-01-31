@@ -31,6 +31,8 @@ import {
   Film,
   Music,
   Archive,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -95,7 +97,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.3";
+const APP_VERSION = "5.4";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -207,6 +209,7 @@ function App() {
     return (saved as Theme) || "system";
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState(false);
   const [loadingBody, setLoadingBody] = useState(false);
   const viewHtml = true; // Always use Rich HTML view
   const [showFilters, setShowFilters] = useState(false);
@@ -942,6 +945,13 @@ function App() {
           </div>
           <div className="header-actions">
             <button 
+              className={`privacy-toggle ${privacyMode ? 'active' : ''}`}
+              onClick={() => setPrivacyMode(!privacyMode)}
+              title={privacyMode ? 'Show content' : 'Hide content'}
+            >
+              {privacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+            <button 
               className="theme-toggle" 
               onClick={toggleTheme}
               title={`Theme: ${theme}`}
@@ -1018,7 +1028,7 @@ function App() {
       </aside>
 
       {/* Main Content */}
-      <main className={`main ${isResizing ? 'resizing' : ''}`}>
+      <main className={`main ${isResizing ? 'resizing' : ''} ${privacyMode ? 'privacy-blur' : ''}`}>
         {/* Search Header */}
         <header className="search-header">
           <button 
