@@ -97,7 +97,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.5";
+const APP_VERSION = "5.6";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1169,10 +1169,37 @@ function App() {
             )}
 
             {!loading && accounts.length > 0 && results.length === 0 && query === "" && (
-              <div className="empty-state anim-fade-in">
-                <IllustrationSearch width={140} height={140} className="empty-illustration" />
-                <h3>Ready to search</h3>
-                <p>Search across {accounts.length} connected account{accounts.length !== 1 ? "s" : ""} instantly.</p>
+              <div className="empty-state-with-ghost anim-fade-in">
+                {/* Ghost skeleton wireframes */}
+                <div className="ghost-skeletons">
+                  <div className="ghost-skeleton-item">
+                    <div className="ghost-line w-40" />
+                    <div className="ghost-line w-80" />
+                    <div className="ghost-line w-60" />
+                  </div>
+                  <div className="ghost-skeleton-item">
+                    <div className="ghost-line w-35" />
+                    <div className="ghost-line w-90" />
+                    <div className="ghost-line w-50" />
+                  </div>
+                  <div className="ghost-skeleton-item">
+                    <div className="ghost-line w-45" />
+                    <div className="ghost-line w-70" />
+                    <div className="ghost-line w-55" />
+                  </div>
+                </div>
+                {/* Centered content */}
+                <div className="empty-state-content">
+                  <IllustrationSearch width={120} height={120} className="empty-illustration" />
+                  <h3>Ready to search</h3>
+                  <p>Try searching for:</p>
+                  <div className="search-suggestions">
+                    <button className="suggestion-chip" onClick={() => { setQuery("invoices"); }}>invoices</button>
+                    <button className="suggestion-chip" onClick={() => { setQuery("receipts"); }}>receipts</button>
+                    <button className="suggestion-chip" onClick={() => { setQuery("flight confirmation"); }}>flights</button>
+                    <button className="suggestion-chip" onClick={() => { setQuery("has:attachment"); }}>attachments</button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1282,10 +1309,28 @@ function App() {
           <div className={`preview-panel ${selectedResult ? 'active' : ''}`}>
             {!selectedResult ? (
               <div className="preview-empty">
-                <div className="preview-empty-icon">
-                  <Mail size={40} strokeWidth={1.5} />
+                {/* Ghost wireframe for preview */}
+                <div className="preview-ghost">
+                  <div className="ghost-header">
+                    <div className="ghost-line w-60" />
+                    <div className="ghost-line w-30" />
+                  </div>
+                  <div className="ghost-body">
+                    <div className="ghost-line w-100" />
+                    <div className="ghost-line w-90" />
+                    <div className="ghost-line w-95" />
+                    <div className="ghost-line w-70" />
+                    <div className="ghost-line w-85" />
+                    <div className="ghost-line w-40" />
+                  </div>
                 </div>
-                <p>Select a message to preview</p>
+                {/* Centered content */}
+                <div className="preview-empty-content">
+                  <div className="preview-empty-icon">
+                    <Mail size={36} strokeWidth={1.5} />
+                  </div>
+                  <p>Select a message to preview</p>
+                </div>
               </div>
             ) : (
               <div className="preview-content">
