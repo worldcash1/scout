@@ -27,6 +27,9 @@ import {
   File,
   Eye,
   Code,
+  Filter,
+  Calendar,
+  User,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -91,7 +94,32 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
+
+// Format date to relative time
+const formatRelativeDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffSecs < 60) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    
+    // Show month and day for older emails
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch {
+    return dateStr;
+  }
+};
 
 // Clean up email body for display
 const cleanEmailBody = (text: string): string => {
@@ -148,8 +176,24 @@ const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly email";
 
 type Theme = "light" | "dark" | "system";
 
+// Search filter types
+interface SearchFilters {
+  dateRange: "any" | "day" | "week" | "month" | "year";
+  hasAttachment: boolean;
+  from: string;
+}
+
 function App() {
-  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
+  const [accounts, setAccounts] = useState<ConnectedAccount[]>(() => {
+    // Load saved accounts from localStorage (without tokens - those need re-auth)
+    const saved = localStorage.getItem("scout-accounts");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch { return []; }
+    }
+    return [];
+  });
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -164,7 +208,20 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loadingBody, setLoadingBody] = useState(false);
-  const [viewHtml, setViewHtml] = useState(true); // Default to HTML view for rich emails
+  const [viewHtml, setViewHtml] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<SearchFilters>({
+    dateRange: "any",
+    hasAttachment: false,
+    from: ""
+  });
+  
+  // Save accounts to localStorage when they change
+  useEffect(() => {
+    if (accounts.length > 0) {
+      localStorage.setItem("scout-accounts", JSON.stringify(accounts));
+    }
+  }, [accounts]);
 
   // Fetch full email body when selected
   const fetchFullEmail = async (result: SearchResult) => {
@@ -398,8 +455,36 @@ function App() {
       
       await Promise.all(gmailAccounts.map(async (account) => {
         try {
+          // Build Gmail query with filters
+          let gmailQuery = query;
+          
+          // Date range filter
+          if (filters.dateRange !== "any") {
+            const now = new Date();
+            let afterDate: Date;
+            switch (filters.dateRange) {
+              case "day": afterDate = new Date(now.setDate(now.getDate() - 1)); break;
+              case "week": afterDate = new Date(now.setDate(now.getDate() - 7)); break;
+              case "month": afterDate = new Date(now.setMonth(now.getMonth() - 1)); break;
+              case "year": afterDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+              default: afterDate = new Date(0);
+            }
+            const formatted = afterDate.toISOString().split('T')[0].replace(/-/g, '/');
+            gmailQuery += ` after:${formatted}`;
+          }
+          
+          // Has attachment filter
+          if (filters.hasAttachment) {
+            gmailQuery += " has:attachment";
+          }
+          
+          // From filter
+          if (filters.from.trim()) {
+            gmailQuery += ` from:${filters.from.trim()}`;
+          }
+          
           const searchRes = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=20`,
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQuery)}&maxResults=20`,
             { headers: { Authorization: `Bearer ${account.accessToken}` } }
           );
 
@@ -645,6 +730,13 @@ function App() {
                 <X size={16} />
               </button>
             )}
+            <button 
+              className={`filter-toggle-btn ${showFilters ? 'active' : ''} ${(filters.dateRange !== 'any' || filters.hasAttachment || filters.from) ? 'has-filters' : ''}`}
+              onClick={() => setShowFilters(!showFilters)}
+              title="Search filters"
+            >
+              <Filter size={18} />
+            </button>
           </div>
           <button className="search-btn" onClick={search} disabled={loading || accounts.length === 0}>
             {loading ? (
@@ -660,6 +752,51 @@ function App() {
             )}
           </button>
         </header>
+
+        {/* Search Filters Panel */}
+        {showFilters && (
+          <div className="search-filters-panel">
+            <div className="filter-group">
+              <label><Calendar size={14} /> Date Range</label>
+              <select 
+                value={filters.dateRange} 
+                onChange={(e) => setFilters({...filters, dateRange: e.target.value as SearchFilters['dateRange']})}
+              >
+                <option value="any">Any time</option>
+                <option value="day">Past 24 hours</option>
+                <option value="week">Past week</option>
+                <option value="month">Past month</option>
+                <option value="year">Past year</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label><User size={14} /> From</label>
+              <input 
+                type="text" 
+                placeholder="sender@email.com"
+                value={filters.from}
+                onChange={(e) => setFilters({...filters, from: e.target.value})}
+              />
+            </div>
+            <div className="filter-group checkbox">
+              <label>
+                <input 
+                  type="checkbox" 
+                  checked={filters.hasAttachment}
+                  onChange={(e) => setFilters({...filters, hasAttachment: e.target.checked})}
+                />
+                <Paperclip size={14} />
+                Has attachment
+              </label>
+            </div>
+            <button 
+              className="clear-filters-btn"
+              onClick={() => setFilters({ dateRange: "any", hasAttachment: false, from: "" })}
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
 
         {/* Filter Bar */}
         <div className="filter-bar">
@@ -818,7 +955,7 @@ function App() {
                     </div>
                     <div className="preview-date-block">
                       <span className="preview-date-label">Date</span>
-                      <span className="preview-date-value">{selectedResult.date}</span>
+                      <span className="preview-date-value">{formatRelativeDate(selectedResult.date)}</span>
                     </div>
                   </div>
                   {/* Attachments */}
