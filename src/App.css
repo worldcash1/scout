@@ -449,7 +449,8 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
 }
 
 .source-remove {
@@ -474,28 +475,6 @@ body {
 .source-remove:hover {
   background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
-}
-
-/* Coming Soon Section */
-.coming-soon-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 8px 12px;
-  margin-top: 8px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.source-item-disabled {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--text-muted);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  opacity: 0.6;
 }
 
 .add-source-btn {
@@ -1244,7 +1223,7 @@ body {
 
 /* Google Account with Services */
 .google-account {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .google-account .account-info {
@@ -1254,32 +1233,36 @@ body {
 
 .connected-services {
   display: flex;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .service-badge {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
+  gap: 2px;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .service-badge.gmail {
-  background: rgba(234, 67, 53, 0.1);
+  background: rgba(234, 67, 53, 0.08);
   color: #ea4335;
 }
 
 .service-badge.drive {
-  background: rgba(26, 115, 232, 0.1);
+  background: rgba(26, 115, 232, 0.08);
   color: #1a73e8;
 }
 
 .service-badge svg {
   flex-shrink: 0;
+  width: 8px;
+  height: 8px;
 }
 
 /* Load More Button */

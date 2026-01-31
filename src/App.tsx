@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "4.4";
+const APP_VERSION = "4.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1038,20 +1038,7 @@ function App() {
             )}
           </div>
 
-          {/* Coming Soon Sources */}
-          <div className="coming-soon-section">
-            {(["dropbox", "slack", "whatsapp"] as const).map((source) => {
-              const config = SOURCE_CONFIG[source];
-              const Icon = config.icon;
-              return (
-                <div key={source} className="source-item-disabled">
-                  <Icon size={14} />
-                  <span>{config.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  </div>
 
         <div className="sidebar-footer">
           <button 
