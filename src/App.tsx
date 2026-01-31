@@ -669,18 +669,23 @@ function App() {
       });
 
       const tokenData = await tokenRes.json();
-      if (!tokenRes.ok) throw new Error(tokenData.error_description || "Dropbox auth failed");
+      console.log("Dropbox token response:", tokenData);
+      if (!tokenRes.ok) throw new Error(tokenData.error_description || tokenData.error || "Dropbox auth failed");
 
       // Get user info
       const userRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
         method: "POST",
         headers: { 
           Authorization: `Bearer ${tokenData.access_token}`,
-          "Content-Type": "application/json"
         },
+        body: null
       });
       
-      if (!userRes.ok) throw new Error("Failed to get Dropbox user info");
+      if (!userRes.ok) {
+        const errData = await userRes.json().catch(() => ({}));
+        console.error("Dropbox user info error:", errData);
+        throw new Error(errData.error_summary || "Failed to get Dropbox user info");
+      }
       const user = await userRes.json();
 
       const newAccount: DropboxAccount = {
