@@ -5,7 +5,6 @@ import {
   Box,
   MessageSquare,
   FolderOpen,
-  MessageCircle,
   Plus,
   X,
   ExternalLink,
@@ -82,7 +81,7 @@ interface Attachment {
 
 interface SearchResult {
   id: string;
-  source: "gmail" | "dropbox" | "slack" | "drive" | "whatsapp";
+  source: "gmail" | "dropbox" | "slack" | "drive";
   sourceLabel: string;
   sourceColor: string;
   title: string;
@@ -123,7 +122,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.6";
+const APP_VERSION = "6.7";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -196,7 +195,6 @@ const SOURCE_CONFIG = {
   dropbox: { label: "Dropbox", icon: Box, color: "#0061fe" },
   slack: { label: "Slack", icon: MessageSquare, color: "#4a154b" },
   drive: { label: "Google Drive", icon: FolderOpen, color: "#1a73e8" },
-  whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "#25d366" },
 };
 
 const GMAIL_CLIENT_ID = "1063241264534-20soj16a1sv7u78212f4k3qn4khcbf05.apps.googleusercontent.com";
@@ -228,7 +226,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeFilters, setActiveFilters] = useState<string[]>(["gmail", "dropbox", "slack", "drive", "whatsapp"]);
+  const [activeFilters, setActiveFilters] = useState<string[]>(["gmail", "dropbox", "slack", "drive"]);
   const [collapsedSources, setCollapsedSources] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("scout-theme");
