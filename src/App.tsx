@@ -124,7 +124,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.1";
+const APP_VERSION = "7.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -563,7 +563,26 @@ function App() {
     return window.location.origin + window.location.pathname;
   };
 
+  // Generate cryptographically random state for OAuth CSRF protection
+  const generateOAuthState = (provider: string) => {
+    const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+    const randomPart = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    const state = `${provider}_${randomPart}`;
+    sessionStorage.setItem('oauth_state', state);
+    return state;
+  };
+
+  // Verify OAuth state to prevent CSRF
+  const verifyOAuthState = (state: string | null): string | null => {
+    if (!state) return null;
+    const savedState = sessionStorage.getItem('oauth_state');
+    sessionStorage.removeItem('oauth_state'); // Clear after use
+    if (state !== savedState) return null;
+    return state.split('_')[0]; // Return provider name
+  };
+
   const connectGmail = () => {
+    const state = generateOAuthState('gmail');
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${GMAIL_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(getRedirectUri())}&` +
@@ -571,12 +590,13 @@ function App() {
       `scope=${encodeURIComponent(GMAIL_SCOPES)}&` +
       `access_type=offline&` +
       `prompt=select_account&` +
-      `state=gmail`;
+      `state=${state}`;
     
     window.location.href = authUrl;
   };
 
   const connectDropbox = () => {
+    const state = generateOAuthState('dropbox');
     const scopes = "account_info.read files.metadata.read files.content.read";
     const authUrl = `https://www.dropbox.com/oauth2/authorize?` +
       `client_id=${DROPBOX_CLIENT_ID}&` +
@@ -584,18 +604,19 @@ function App() {
       `response_type=code&` +
       `token_access_type=offline&` +
       `scope=${encodeURIComponent(scopes)}&` +
-      `state=dropbox`;
+      `state=${state}`;
     
     window.location.href = authUrl;
   };
 
   const connectSlack = () => {
+    const state = generateOAuthState('slack');
     const scopes = "search:read,users:read,users:read.email";
     const authUrl = `https://slack.com/oauth/v2/authorize?` +
       `client_id=${SLACK_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(SLACK_REDIRECT_URI)}&` +
       `user_scope=${encodeURIComponent(scopes)}&` +
-      `state=slack`;
+      `state=${state}`;
     
     window.location.href = authUrl;
   };
@@ -607,9 +628,17 @@ function App() {
     
     if (code) {
       window.history.replaceState({}, "", window.location.pathname);
-      if (state === "dropbox") {
+      
+      // Verify OAuth state to prevent CSRF attacks
+      const provider = verifyOAuthState(state);
+      if (!provider) {
+        setError("OAuth state mismatch - please try connecting again");
+        return;
+      }
+      
+      if (provider === "dropbox") {
         handleDropboxCallback(code);
-      } else if (state === "slack") {
+      } else if (provider === "slack") {
         handleSlackCallback(code);
       } else {
         handleGmailCallback(code);
@@ -1921,7 +1950,8 @@ function App() {
                       <iframe
                         srcDoc={selectedResult.bodyHtml}
                         className="email-iframe"
-                        sandbox="allow-same-origin"
+                        sandbox=""
+                        referrerPolicy="no-referrer"
                         title="Email content"
                       />
                     ) : (
