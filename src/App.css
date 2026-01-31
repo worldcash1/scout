@@ -1236,6 +1236,46 @@ body {
   border-top: none;
 }
 
+/* Google Account with Services */
+.google-account {
+  flex-wrap: wrap;
+}
+
+.google-account .account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.connected-services {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.service-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.service-badge.gmail {
+  background: rgba(234, 67, 53, 0.1);
+  color: #ea4335;
+}
+
+.service-badge.drive {
+  background: rgba(26, 115, 232, 0.1);
+  color: #1a73e8;
+}
+
+.service-badge svg {
+  flex-shrink: 0;
+}
+
 /* Load More Button */
 .load-more-container {
   padding: 16px 20px;
