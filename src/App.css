@@ -1552,7 +1552,9 @@ body {
 
 .ghost-skeleton-item {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--text-primary);
+  margin-bottom: 8px;
+  border: 1px solid var(--text-primary);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1575,6 +1577,7 @@ body {
 .ghost-line.w-50 { width: 50%; }
 .ghost-line.w-45 { width: 45%; }
 .ghost-line.w-40 { width: 40%; }
+.ghost-line.w-38 { width: 38%; }
 .ghost-line.w-35 { width: 35%; }
 .ghost-line.w-30 { width: 30%; }
 
@@ -1636,10 +1639,12 @@ body {
 
 .preview-ghost {
   position: absolute;
-  inset: 0;
+  inset: 24px;
   padding: 24px;
-  opacity: 0.06;
+  opacity: 0.08;
   pointer-events: none;
+  border: 1px solid var(--text-primary);
+  border-radius: 12px;
 }
 
 .preview-ghost .ghost-header {

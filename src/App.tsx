@@ -97,7 +97,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.6";
+const APP_VERSION = "5.7";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1186,6 +1186,11 @@ function App() {
                     <div className="ghost-line w-45" />
                     <div className="ghost-line w-70" />
                     <div className="ghost-line w-55" />
+                  </div>
+                  <div className="ghost-skeleton-item">
+                    <div className="ghost-line w-38" />
+                    <div className="ghost-line w-85" />
+                    <div className="ghost-line w-65" />
                   </div>
                 </div>
                 {/* Centered content */}
