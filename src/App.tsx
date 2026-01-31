@@ -55,11 +55,24 @@ interface DropboxAccount {
   color: string;
 }
 
-type ConnectedAccount = GmailAccount | DropboxAccount;
+interface SlackAccount {
+  type: "slack";
+  email: string;
+  team: string;
+  accessToken: string;
+  color: string;
+}
+
+type ConnectedAccount = GmailAccount | DropboxAccount | SlackAccount;
 
 // Dropbox OAuth config
 const DROPBOX_CLIENT_ID = "3b2bjbmi8dml44w";
 const DROPBOX_REDIRECT_URI = window.location.origin;
+
+// Slack OAuth config
+const SLACK_CLIENT_ID = "10398366226727.10442113554736";
+const SLACK_CLIENT_SECRET = "e634eb8ae400f133bae91e568930976d";
+const SLACK_REDIRECT_URI = window.location.origin;
 
 interface Attachment {
   id: string;
@@ -111,7 +124,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.2";
+const APP_VERSION = "6.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -585,6 +598,17 @@ function App() {
     window.location.href = authUrl;
   };
 
+  const connectSlack = () => {
+    const scopes = "search:read,users:read,users:read.email";
+    const authUrl = `https://slack.com/oauth/v2/authorize?` +
+      `client_id=${SLACK_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(SLACK_REDIRECT_URI)}&` +
+      `user_scope=${encodeURIComponent(scopes)}&` +
+      `state=slack`;
+    
+    window.location.href = authUrl;
+  };
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
@@ -594,6 +618,8 @@ function App() {
       window.history.replaceState({}, "", window.location.pathname);
       if (state === "dropbox") {
         handleDropboxCallback(code);
+      } else if (state === "slack") {
+        handleSlackCallback(code);
       } else {
         handleGmailCallback(code);
       }
@@ -706,6 +732,62 @@ function App() {
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to connect Dropbox");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSlackCallback = async (code: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const tokenRes = await fetch("https://slack.com/api/oauth.v2.access", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: SLACK_CLIENT_ID,
+          client_secret: SLACK_CLIENT_SECRET,
+          redirect_uri: SLACK_REDIRECT_URI,
+        }),
+      });
+
+      const tokenData = await tokenRes.json();
+      console.log("Slack token response:", tokenData);
+      if (!tokenData.ok) throw new Error(tokenData.error || "Slack auth failed");
+
+      const userToken = tokenData.authed_user?.access_token;
+      if (!userToken) throw new Error("No user token received");
+
+      // Get user info
+      const userRes = await fetch("https://slack.com/api/users.identity", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      
+      const userData = await userRes.json();
+      console.log("Slack user data:", userData);
+      if (!userData.ok) throw new Error(userData.error || "Failed to get Slack user info");
+
+      const newAccount: SlackAccount = {
+        type: "slack",
+        email: userData.user?.email || userData.user?.name || "Slack User",
+        team: userData.team?.name || "Workspace",
+        accessToken: userToken,
+        color: "#4a154b" // Slack purple
+      };
+
+      setAccounts(prev => {
+        const existing = prev.findIndex(a => a.type === "slack" && a.email === newAccount.email);
+        if (existing >= 0) {
+          const updated = [...prev];
+          updated[existing] = newAccount;
+          return updated;
+        }
+        return [...prev, newAccount];
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to connect Slack");
     } finally {
       setLoading(false);
     }
@@ -963,6 +1045,46 @@ function App() {
           });
         } catch (e) {
           console.error(`Dropbox search error for ${account.email}:`, e);
+        }
+      }));
+    }
+
+    // Search Slack
+    if (activeFilters.includes("slack")) {
+      const slackAccounts = accounts.filter(a => a.type === "slack") as SlackAccount[];
+      
+      await Promise.all(slackAccounts.map(async (account) => {
+        try {
+          const searchRes = await fetch(`https://slack.com/api/search.messages?query=${encodeURIComponent(query)}&count=50`, {
+            headers: { Authorization: `Bearer ${account.accessToken}` },
+          });
+
+          const searchData = await searchRes.json();
+          if (!searchData.ok) {
+            console.error("Slack search error:", searchData.error);
+            return;
+          }
+
+          const messages = searchData.messages?.matches || [];
+          messages.forEach((msg: { iid: string; ts: string; text: string; channel: { name: string; id: string }; username: string; permalink: string }) => {
+            allResults.push({
+              id: `slack-${msg.iid || msg.ts}`,
+              source: "slack",
+              sourceLabel: account.team,
+              sourceColor: SOURCE_CONFIG.slack.color,
+              title: `#${msg.channel?.name || "channel"}`,
+              subtitle: msg.username || "Unknown",
+              snippet: msg.text?.substring(0, 200) || "",
+              date: new Date(parseFloat(msg.ts) * 1000).toISOString(),
+              url: msg.permalink,
+              metadata: { 
+                account: account.email,
+                channel: msg.channel?.name
+              }
+            });
+          });
+        } catch (e) {
+          console.error(`Slack search error for ${account.email}:`, e);
         }
       }));
     }
@@ -1247,6 +1369,42 @@ function App() {
               )}
             </div>
           </div>
+
+          {/* Slack Section */}
+          <div className="source-group slack-group">
+            <div className="source-header">
+              <div className="source-header-left">
+                <MessageSquare size={16} style={{ color: "#4a154b" }} />
+                <span>Slack</span>
+              </div>
+              {accounts.filter(a => a.type === "slack").length > 0 && (
+                <span className="source-count">{accounts.filter(a => a.type === "slack").length}</span>
+              )}
+            </div>
+            <div className="source-accounts">
+              {accounts.filter(a => a.type === "slack").length > 0 ? (
+                accounts.filter(a => a.type === "slack").map((account) => (
+                  <div key={account.email} className="source-item compact">
+                    <Check size={14} className="connected-check" />
+                    <div className="account-info">
+                      <span className="source-email">{(account as SlackAccount).team}</span>
+                      <div className="connected-services">
+                        <span className="service-badge slack"><MessageSquare size={10} /> Messages</span>
+                      </div>
+                    </div>
+                    <button className="source-remove" onClick={(e) => { e.stopPropagation(); removeAccount(account); }}>
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <button className="connect-source-btn" onClick={connectSlack}>
+                  <Plus size={14} />
+                  <span>Connect Slack</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="sidebar-footer">
@@ -1483,6 +1641,7 @@ function App() {
                                 {result.source === "gmail" && <Mail size={10} />}
                                 {result.source === "drive" && <FolderOpen size={10} />}
                                 {result.source === "dropbox" && <Box size={10} />}
+                                {result.source === "slack" && <MessageSquare size={10} />}
                               </span>
                               <span className="result-sender">{result.subtitle}</span>
                             </div>
