@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -215,6 +215,11 @@ function App() {
     hasAttachment: false,
     from: ""
   });
+  const [listWidth, setListWidth] = useState(() => {
+    const saved = localStorage.getItem("scout-list-width");
+    return saved ? parseInt(saved) : 420;
+  });
+  const [isResizing, setIsResizing] = useState(false);
   
   // Save accounts to localStorage when they change
   useEffect(() => {
@@ -222,6 +227,31 @@ function App() {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
     }
   }, [accounts]);
+
+  // Handle panel resize
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startWidth = listWidth;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - startX;
+      const newWidth = Math.min(Math.max(startWidth + diff, 280), 600);
+      setListWidth(newWidth);
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      localStorage.setItem("scout-list-width", listWidth.toString());
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+    
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
 
   // Fetch full email body when selected
   const fetchFullEmail = async (result: SearchResult) => {
@@ -823,9 +853,9 @@ function App() {
         </div>
 
         {/* Results */}
-        <div className="results-container">
+        <div className={`results-container ${isResizing ? 'resizing' : ''}`}>
           {/* Results List */}
-          <div className="results-list">
+          <div className="results-list" style={{ width: `${listWidth}px` }}>
             {loading && (
               <div className="results-loading">
                 <ResultSkeleton />
@@ -916,6 +946,12 @@ function App() {
               </>
             )}
           </div>
+
+          {/* Resize Handle */}
+          <div 
+            className="resize-handle"
+            onMouseDown={handleResizeStart}
+          />
 
           {/* Preview Panel */}
           <div className={`preview-panel ${selectedResult ? 'active' : ''}`}>

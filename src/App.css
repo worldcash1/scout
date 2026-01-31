@@ -815,14 +815,61 @@ body {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
+}
+
+.results-container.resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.results-container.resizing * {
+  pointer-events: none;
+}
+
+/* ================================
+   RESIZE HANDLE
+   ================================ */
+.resize-handle {
+  width: 5px;
+  background: var(--border-subtle);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.resize-handle:hover,
+.results-container.resizing .resize-handle {
+  background: var(--accent);
+}
+
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 30px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.resize-handle:hover::after,
+.results-container.resizing .resize-handle::after {
+  opacity: 0.5;
 }
 
 /* ================================
    RESULTS LIST
    ================================ */
 .results-list {
-  width: 440px;
-  border-right: 1px solid var(--border-subtle);
+  width: 420px;
+  min-width: 280px;
+  max-width: 600px;
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
