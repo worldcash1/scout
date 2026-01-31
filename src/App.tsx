@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "1.9";
+const APP_VERSION = "2.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -933,7 +933,7 @@ function App() {
                           <div className="result-account">
                             <span 
                               className="source-dot"
-                              style={{ backgroundColor: result.sourceColor }}
+                              style={{ backgroundColor: SOURCE_CONFIG[result.source].color }}
                             />
                             <span>{result.sourceLabel}</span>
                           </div>
@@ -975,7 +975,7 @@ function App() {
                   <div className="preview-header">
                     <span 
                       className="source-badge large"
-                      style={{ backgroundColor: selectedResult.sourceColor }}
+                      style={{ backgroundColor: SOURCE_CONFIG[selectedResult.source].color }}
                     >
                       {(() => {
                         const Icon = SOURCE_CONFIG[selectedResult.source].icon;
