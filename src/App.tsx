@@ -122,14 +122,14 @@ const decodeBase64UTF8 = (base64: string): string => {
     }
     // Decode as UTF-8
     return new TextDecoder('utf-8').decode(bytes);
-  } catch (e) {
+  } catch {
     // Fallback to simple atob
     return atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
   }
 };
 
 // App version
-const APP_VERSION = "7.3";
+const APP_VERSION = "7.4";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -160,7 +160,7 @@ const formatRelativeDate = (dateStr: string): string => {
 const cleanEmailBody = (text: string): string => {
   if (!text) return "";
   
-  let cleaned = text
+  const cleaned = text
     // Remove style tags and their content
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
     // Remove script tags and their content
@@ -471,8 +471,11 @@ function App() {
         let htmlBody = "";
         const attachments: Attachment[] = [];
         
+        // Gmail payload part type
+        type GmailPayload = { filename?: string; body?: { attachmentId?: string; data?: string; size?: number }; mimeType?: string; parts?: GmailPayload[] };
+        
         // Extract content from parts recursively
-        const extractContent = (payload: any) => {
+        const extractContent = (payload: GmailPayload) => {
           // Check for attachments
           if (payload.filename && payload.body?.attachmentId) {
             attachments.push({
