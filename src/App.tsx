@@ -48,7 +48,18 @@ interface GmailAccount {
   color: string;
 }
 
-type ConnectedAccount = GmailAccount;
+interface DropboxAccount {
+  type: "dropbox";
+  email: string;
+  accessToken: string;
+  color: string;
+}
+
+type ConnectedAccount = GmailAccount | DropboxAccount;
+
+// Dropbox OAuth config
+const DROPBOX_CLIENT_ID = "3b2bjbmi8dml44w";
+const DROPBOX_REDIRECT_URI = window.location.origin;
 
 interface Attachment {
   id: string;
@@ -100,7 +111,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.9";
+const APP_VERSION = "6.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -223,6 +234,7 @@ function App() {
   });
   const [showHistory, setShowHistory] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [showAddAccount, setShowAddAccount] = useState(false);
   const viewHtml = true; // Always use Rich HTML view
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
@@ -554,7 +566,19 @@ function App() {
       `response_type=code&` +
       `scope=${encodeURIComponent(GMAIL_SCOPES)}&` +
       `access_type=offline&` +
-      `prompt=select_account`;
+      `prompt=select_account&` +
+      `state=gmail`;
+    
+    window.location.href = authUrl;
+  };
+
+  const connectDropbox = () => {
+    const authUrl = `https://www.dropbox.com/oauth2/authorize?` +
+      `client_id=${DROPBOX_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(DROPBOX_REDIRECT_URI)}&` +
+      `response_type=code&` +
+      `token_access_type=offline&` +
+      `state=dropbox`;
     
     window.location.href = authUrl;
   };
@@ -562,10 +586,15 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
+    const state = urlParams.get("state");
     
     if (code) {
       window.history.replaceState({}, "", window.location.pathname);
-      handleGmailCallback(code);
+      if (state === "dropbox") {
+        handleDropboxCallback(code);
+      } else {
+        handleGmailCallback(code);
+      }
     }
   }, []);
 
@@ -615,6 +644,61 @@ function App() {
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to connect");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDropboxCallback = async (code: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: DROPBOX_REDIRECT_URI,
+          client_id: DROPBOX_CLIENT_ID,
+          client_secret: "u4l4im2y3i3i1v4",
+        }),
+      });
+
+      const tokenData = await tokenRes.json();
+      if (!tokenRes.ok) throw new Error(tokenData.error_description || "Dropbox auth failed");
+
+      // Get user info
+      const userRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
+        method: "POST",
+        headers: { 
+          Authorization: `Bearer ${tokenData.access_token}`,
+          "Content-Type": "application/json"
+        },
+      });
+      
+      if (!userRes.ok) throw new Error("Failed to get Dropbox user info");
+      const user = await userRes.json();
+
+      const newAccount: DropboxAccount = {
+        type: "dropbox",
+        email: user.email,
+        accessToken: tokenData.access_token,
+        color: "#0061fe" // Dropbox blue
+      };
+
+      setAccounts(prev => {
+        const existing = prev.findIndex(a => a.type === "dropbox" && a.email === user.email);
+        if (existing >= 0) {
+          const updated = [...prev];
+          updated[existing] = newAccount;
+          return updated;
+        }
+        return [...prev, newAccount];
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to connect Dropbox");
     } finally {
       setLoading(false);
     }
@@ -807,6 +891,71 @@ function App() {
           });
         } catch (e) {
           console.error(`Drive search error for ${account.email}:`, e);
+        }
+      }));
+    }
+
+    // Search Dropbox
+    if (activeFilters.includes("dropbox")) {
+      const dropboxAccounts = accounts.filter(a => a.type === "dropbox") as DropboxAccount[];
+      
+      await Promise.all(dropboxAccounts.map(async (account) => {
+        try {
+          const searchRes = await fetch("https://api.dropboxapi.com/2/files/search_v2", {
+            method: "POST",
+            headers: { 
+              Authorization: `Bearer ${account.accessToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              query: query,
+              options: {
+                max_results: 50,
+                file_status: "active",
+                filename_only: false
+              }
+            })
+          });
+
+          if (!searchRes.ok) return;
+          const searchData = await searchRes.json();
+          const matches = searchData.matches || [];
+
+          matches.forEach((match: { metadata: { metadata: { id: string; name: string; path_display: string; client_modified: string; size?: number; ".tag": string } } }) => {
+            const file = match.metadata.metadata;
+            if (file[".tag"] !== "file") return; // Skip folders
+            
+            const ext = file.name.split('.').pop()?.toLowerCase() || "";
+            const fileTypes: Record<string, string> = {
+              pdf: "PDF", doc: "Word", docx: "Word", xls: "Excel", xlsx: "Excel",
+              ppt: "PowerPoint", pptx: "PowerPoint", txt: "Text", md: "Markdown",
+              jpg: "Image", jpeg: "Image", png: "Image", gif: "Image",
+              mp4: "Video", mp3: "Audio", zip: "Archive"
+            };
+            const fileType = fileTypes[ext] || ext.toUpperCase() || "File";
+            const fileSize = file.size ? (file.size < 1024 * 1024 
+              ? `${(file.size / 1024).toFixed(1)} KB` 
+              : `${(file.size / (1024 * 1024)).toFixed(1)} MB`) : "";
+
+            allResults.push({
+              id: `dropbox-${file.id}`,
+              source: "dropbox",
+              sourceLabel: account.email,
+              sourceColor: SOURCE_CONFIG.dropbox.color,
+              title: file.name,
+              subtitle: file.path_display.replace(`/${file.name}`, "") || "/",
+              snippet: fileSize ? `${fileType} • ${fileSize}` : fileType,
+              date: file.client_modified,
+              url: `https://www.dropbox.com/home${file.path_display}`,
+              metadata: { 
+                account: account.email,
+                fileType,
+                path: file.path_display
+              }
+            });
+          });
+        } catch (e) {
+          console.error(`Dropbox search error for ${account.email}:`, e);
         }
       }));
     }
@@ -1031,15 +1180,60 @@ function App() {
                     </button>
                   </div>
                 ))}
-                <button className="add-source-btn compact" onClick={connectGmail}>
-                  <Plus size={12} />
-                  <span>Add account</span>
-                </button>
+                <div className="add-account-wrapper">
+                  <button 
+                    className="add-source-btn compact" 
+                    onClick={() => setShowAddAccount(!showAddAccount)}
+                  >
+                    <Plus size={12} />
+                    <span>Add account</span>
+                  </button>
+                  {showAddAccount && (
+                    <div className="add-account-dropdown">
+                      <button onClick={() => { connectGmail(); setShowAddAccount(false); }}>
+                        <Mail size={16} />
+                        <span>Google (Gmail + Drive)</span>
+                      </button>
+                      <button onClick={() => { connectDropbox(); setShowAddAccount(false); }}>
+                        <Box size={16} />
+                        <span>Dropbox</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
+          {/* Dropbox Section */}
+          {accounts.filter(a => a.type === "dropbox").length > 0 && (
+            <div className="source-group dropbox-group">
+              <div className="source-header">
+                <div className="source-header-left">
+                  <Box size={16} style={{ color: "#0061fe" }} />
+                  <span>Dropbox</span>
+                </div>
+                <span className="source-count">{accounts.filter(a => a.type === "dropbox").length}</span>
+              </div>
+              <div className="source-accounts">
+                {accounts.filter(a => a.type === "dropbox").map((account) => (
+                  <div key={account.email} className="source-item compact">
+                    <Check size={14} className="connected-check" />
+                    <div className="account-info">
+                      <span className="source-email">{account.email}</span>
+                      <div className="connected-services">
+                        <span className="service-badge dropbox"><Box size={10} /> Files</span>
+                      </div>
+                    </div>
+                    <button className="source-remove" onClick={(e) => { e.stopPropagation(); removeAccount(account); }}>
+                      <X size={12} />
+                    </button>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="sidebar-footer">
           <button 

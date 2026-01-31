@@ -575,6 +575,54 @@ body {
   background: var(--bg-hover);
 }
 
+/* Add Account Dropdown */
+.add-account-wrapper {
+  position: relative;
+}
+
+.add-account-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.add-account-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.add-account-dropdown button:hover {
+  background: var(--bg-secondary);
+}
+
+.add-account-dropdown button svg {
+  color: var(--text-secondary);
+}
+
+/* Dropbox badge */
+.service-badge.dropbox {
+  background: rgba(0, 97, 254, 0.1);
+  color: #0061fe;
+}
+
 .sidebar-footer {
   padding: 16px 20px;
   border-top: 1px solid var(--border-subtle);
