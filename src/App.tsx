@@ -123,7 +123,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.4";
+const APP_VERSION = "6.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1041,8 +1041,11 @@ function App() {
       
       await Promise.all(slackAccounts.map(async (account) => {
         try {
-          const searchRes = await fetch(`https://slack.com/api/search.messages?query=${encodeURIComponent(query)}&count=50`, {
-            headers: { Authorization: `Bearer ${account.accessToken}` },
+          // Use API route to avoid CORS
+          const searchRes = await fetch("/api/slack-search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query, token: account.accessToken }),
           });
 
           const searchData = await searchRes.json();
