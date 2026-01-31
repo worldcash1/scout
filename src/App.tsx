@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -166,13 +166,13 @@ const SOURCE_CONFIG = {
   gmail: { label: "Gmail", icon: Mail, color: "#ea4335" },
   dropbox: { label: "Dropbox", icon: Box, color: "#0061fe" },
   slack: { label: "Slack", icon: MessageSquare, color: "#4a154b" },
-  drive: { label: "Drive", icon: FolderOpen, color: "#1a73e8" },
+  drive: { label: "Google Drive", icon: FolderOpen, color: "#1a73e8" },
   whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "#25d366" },
 };
 
 const GMAIL_CLIENT_ID = "1063241264534-20soj16a1sv7u78212f4k3qn4khcbf05.apps.googleusercontent.com";
 const GMAIL_CLIENT_SECRET = "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";
-const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly email";
+const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.readonly email";
 
 type Theme = "light" | "dark" | "system";
 
@@ -668,6 +668,44 @@ function App() {
           }));
         } catch (e) {
           console.error(`Gmail search error for ${account.email}:`, e);
+        }
+      }));
+    }
+
+    // Search Google Drive
+    if (activeFilters.includes("drive")) {
+      const gmailAccounts = accounts.filter(a => a.type === "gmail") as GmailAccount[];
+      
+      await Promise.all(gmailAccounts.map(async (account) => {
+        try {
+          // Drive search query
+          const driveQuery = `fullText contains '${query.replace(/'/g, "\\'")}'`;
+          
+          const searchRes = await fetch(
+            `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(driveQuery)}&fields=files(id,name,mimeType,modifiedTime,webViewLink,iconLink,owners)&pageSize=20`,
+            { headers: { Authorization: `Bearer ${account.accessToken}` } }
+          );
+
+          if (!searchRes.ok) return;
+          const searchData = await searchRes.json();
+          const files = searchData.files || [];
+
+          files.forEach((file: { id: string; name: string; mimeType: string; modifiedTime: string; webViewLink: string; owners?: { displayName: string }[] }) => {
+            allResults.push({
+              id: `drive-${file.id}`,
+              source: "drive",
+              sourceLabel: account.email,
+              sourceColor: SOURCE_CONFIG.drive.color,
+              title: file.name,
+              subtitle: file.owners?.[0]?.displayName || "Me",
+              snippet: file.mimeType.replace("application/vnd.google-apps.", "").replace("application/", ""),
+              date: file.modifiedTime,
+              url: file.webViewLink,
+              metadata: { account: account.email }
+            });
+          });
+        } catch (e) {
+          console.error(`Drive search error for ${account.email}:`, e);
         }
       }));
     }
