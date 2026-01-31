@@ -28,6 +28,8 @@ import {
   Filter,
   Calendar,
   User,
+  Check,
+  Send,
 } from "lucide-react";
 import { IllustrationConnect, IllustrationSearch, IllustrationNoResults } from "./Illustrations";
 import "./App.css";
@@ -92,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -222,6 +224,10 @@ function App() {
     return saved ? parseInt(saved) : 280;
   });
   const [isResizing, setIsResizing] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
   
   // Save accounts to localStorage when they change
   useEffect(() => {
@@ -229,6 +235,39 @@ function App() {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
     }
   }, [accounts]);
+
+  // Send feedback email
+  const sendFeedback = async () => {
+    if (!feedbackText.trim()) return;
+    
+    setFeedbackSending(true);
+    try {
+      // Using Formspree - free email form service
+      const res = await fetch("https://formspree.io/f/xwpkpqvr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "scout-feedback@app.com",
+          message: feedbackText,
+          _subject: "Scout App Feedback",
+          _replyto: accounts[0]?.email || "anonymous"
+        })
+      });
+      
+      if (res.ok) {
+        setFeedbackSent(true);
+        setTimeout(() => {
+          setShowFeedback(false);
+          setFeedbackText("");
+          setFeedbackSent(false);
+        }, 2000);
+      }
+    } catch (e) {
+      console.error("Failed to send feedback:", e);
+    } finally {
+      setFeedbackSending(false);
+    }
+  };
 
   // Handle sidebar resize
   const handleSidebarResizeStart = (e: React.MouseEvent) => {
@@ -752,13 +791,13 @@ function App() {
         </div>
 
         <div className="sidebar-footer">
-          <a 
-            href="mailto:namhhca@yahoo.com?subject=Scout%20Feedback&body=Hi%2C%0A%0AI%20have%20some%20feedback%20about%20Scout%3A%0A%0A" 
+          <button 
             className="feedback-btn"
+            onClick={() => setShowFeedback(true)}
           >
             <MessageCircleHeart size={16} />
             <span>Send Feedback</span>
-          </a>
+          </button>
           <div className="version-badge">v{APP_VERSION}</div>
         </div>
       </aside>
@@ -1135,6 +1174,53 @@ function App() {
           <button onClick={() => setError(null)}>
             <X size={18} />
           </button>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedback && (
+        <div className="modal-overlay" onClick={() => !feedbackSending && setShowFeedback(false)}>
+          <div className="feedback-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Send Feedback</h3>
+              <button className="modal-close" onClick={() => setShowFeedback(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <textarea
+                placeholder="What's on your mind? Bug reports, feature requests, or just say hi..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                rows={5}
+                disabled={feedbackSending || feedbackSent}
+              />
+            </div>
+            <div className="modal-footer">
+              <button 
+                className={`send-feedback-btn ${feedbackSent ? 'success' : ''}`}
+                onClick={sendFeedback}
+                disabled={!feedbackText.trim() || feedbackSending || feedbackSent}
+              >
+                {feedbackSent ? (
+                  <>
+                    <Check size={18} />
+                    <span>Sent!</span>
+                  </>
+                ) : feedbackSending ? (
+                  <>
+                    <Loader2 size={18} className="spin" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={18} />
+                    <span>Send Feedback</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
