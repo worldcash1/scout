@@ -629,6 +629,31 @@ body {
   color: #4a154b;
 }
 
+/* Slack Message Preview */
+.slack-message-preview {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border-left: 4px solid #4a154b;
+}
+
+.slack-message-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.search-highlight {
+  background: rgba(255, 230, 0, 0.4);
+  color: inherit;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
 /* Connect Source Button */
 .connect-source-btn {
   display: flex;

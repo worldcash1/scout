@@ -123,7 +123,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.5";
+const APP_VERSION = "6.6";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1914,17 +1914,47 @@ function App() {
                     </div>
                   )}
                   
-                  {selectedResult.source !== "gmail" && selectedResult.source !== "drive" && selectedResult.url && (
-                    <a 
-                      href={selectedResult.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="action-btn primary source-colored"
-                      style={{ backgroundColor: SOURCE_CONFIG[selectedResult.source].color, borderColor: SOURCE_CONFIG[selectedResult.source].color }}
-                    >
-                      <ExternalLink size={16} />
-                      <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
-                    </a>
+                  {/* Slack Preview */}
+                  {selectedResult.source === "slack" && (
+                    <>
+                      <div className="slack-message-preview">
+                        <div className="slack-message-text">
+                          {selectedResult.snippet.split(new RegExp(`(${query})`, 'gi')).map((part, i) => 
+                            part.toLowerCase() === query.toLowerCase() 
+                              ? <mark key={i} className="search-highlight">{part}</mark>
+                              : part
+                          )}
+                        </div>
+                      </div>
+                      <div className="preview-actions">
+                        <a 
+                          href={selectedResult.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="action-btn primary source-colored"
+                          style={{ backgroundColor: SOURCE_CONFIG.slack.color, borderColor: SOURCE_CONFIG.slack.color }}
+                        >
+                          <ExternalLink size={16} />
+                          <span>Open in Slack</span>
+                        </a>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Dropbox Preview */}
+                  {selectedResult.source === "dropbox" && selectedResult.url && (
+                    <div className="preview-actions">
+                      <a 
+                        href={selectedResult.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="action-btn primary source-colored"
+                        style={{ backgroundColor: SOURCE_CONFIG.dropbox.color, borderColor: SOURCE_CONFIG.dropbox.color }}
+                      >
+                        <ExternalLink size={16} />
+                        <span>Open in Dropbox</span>
+                      </a>
+                    </div>
                   )}
                 </div>
               </div>
