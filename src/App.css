@@ -127,10 +127,10 @@
   --text-xl: 20px;
   --text-2xl: 24px;
   
-  /* Transitions */
-  --transition-fast: 0.1s ease;
-  --transition-base: 0.15s ease;
-  --transition-slow: 0.25s ease;
+  /* Transitions - Snappy */
+  --transition-fast: 0.08s ease-out;
+  --transition-base: 0.12s ease-out;
+  --transition-slow: 0.2s ease-out;
 }
 
 /* Dark Mode - System Preference */
@@ -219,6 +219,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
 }
 
 .app {
@@ -844,34 +863,41 @@ body {
 
 .filter-chips {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .filter-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: 5px;
+  padding: 6px 12px;
   background: var(--bg-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-full);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
+  user-select: none;
 }
 
 .filter-chip:hover {
-  background: var(--bg-hover);
+  background: var(--bg-secondary);
   border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.filter-chip:active {
+  transform: translateY(0);
 }
 
 .filter-chip.active {
-  background: color-mix(in srgb, var(--chip-color) 15%, var(--bg-primary));
+  background: color-mix(in srgb, var(--chip-color) 12%, var(--bg-primary));
   border-color: var(--chip-color);
   color: var(--chip-color);
   font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-color) 10%, transparent);
 }
 
 .filter-chip.active svg {
@@ -1002,6 +1028,10 @@ body {
 
 .result-item:hover {
   background: var(--bg-secondary);
+}
+
+.result-item:hover .result-sender {
+  color: var(--accent);
 }
 
 .result-item:active {
@@ -1449,6 +1479,7 @@ body {
   flex: 1;
   background: var(--bg-primary);
   overflow-y: auto;
+  box-shadow: inset 1px 0 0 var(--border-subtle);
 }
 
 .preview-empty {
