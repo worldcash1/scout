@@ -70,6 +70,32 @@ const decodeHTML = (html: string): string => {
   return txt.value;
 };
 
+// Clean up email body for display
+const cleanEmailBody = (text: string): string => {
+  if (!text) return "";
+  
+  let cleaned = text
+    // Fix common encoding issues
+    .replace(/â€™/g, "'")
+    .replace(/â€œ/g, '"')
+    .replace(/â€/g, '"')
+    .replace(/â€"/g, '—')
+    .replace(/â€"/g, '–')
+    .replace(/Â /g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    // Remove [image: ...] placeholders
+    .replace(/\[image:[^\]]*\]/gi, '')
+    // Clean up URLs in angle brackets
+    .replace(/<(https?:\/\/[^>]+)>/g, '$1')
+    // Remove multiple consecutive spaces
+    .replace(/  +/g, ' ')
+    // Preserve line breaks but clean up excessive ones
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  
+  return cleaned;
+};
+
 const SOURCE_CONFIG = {
   gmail: { label: "Gmail", icon: Mail, color: "#ea4335" },
   dropbox: { label: "Dropbox", icon: Box, color: "#0061fe" },
@@ -773,7 +799,7 @@ function App() {
                         <span>Loading email...</span>
                       </div>
                     ) : (
-                      <p>{decodeHTML(selectedResult.body || selectedResult.snippet)}</p>
+                      <p>{cleanEmailBody(decodeHTML(selectedResult.body || selectedResult.snippet))}</p>
                     )}
                   </div>
 
