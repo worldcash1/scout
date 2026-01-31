@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "1.7";
+const APP_VERSION = "1.8";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -878,7 +878,6 @@ function App() {
                 </div>
                 <div className={`results-scroll ${isSelectionMode ? 'selection-active' : ''}`}>
                   {results.map((result, index) => {
-                    const Icon = SOURCE_CONFIG[result.source].icon;
                     return (
                       <div
                         key={result.id}
@@ -893,19 +892,21 @@ function App() {
                           {isSelected(result.id) ? <CheckSquare size={18} /> : <Square size={18} />}
                         </button>
                         <div className="result-content">
-                          <div className="result-source">
-                            <span 
-                              className="source-badge"
-                              style={{ backgroundColor: result.sourceColor }}
-                            >
-                              <Icon size={12} />
-                              <span>{result.sourceLabel.split("@")[0]}</span>
-                            </span>
+                          <div className="result-row-1">
+                            <span className="result-sender">{result.subtitle}</span>
                             <span className="result-date">{formatDate(result.date)}</span>
                           </div>
-                          <div className="result-title">{result.title}</div>
-                          <div className="result-subtitle">{result.subtitle}</div>
-                          <div className="result-snippet">{decodeHTML(result.snippet)}</div>
+                          <div className="result-row-2">
+                            <span className="result-title">{result.title}</span>
+                            <span className="result-snippet-inline"> — {decodeHTML(result.snippet)}</span>
+                          </div>
+                          <div className="result-account">
+                            <span 
+                              className="source-dot"
+                              style={{ backgroundColor: result.sourceColor }}
+                            />
+                            <span>{result.sourceLabel}</span>
+                          </div>
                         </div>
                         <ChevronRight size={16} className="result-arrow" />
                       </div>
