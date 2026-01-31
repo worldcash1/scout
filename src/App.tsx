@@ -70,11 +70,22 @@ const decodeHTML = (html: string): string => {
   return txt.value;
 };
 
+// App version
+const APP_VERSION = "1.4";
+
 // Clean up email body for display
 const cleanEmailBody = (text: string): string => {
   if (!text) return "";
   
   let cleaned = text
+    // Remove style tags and their content
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    // Remove script tags and their content
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    // Remove HTML comments
+    .replace(/<!--[\s\S]*?-->/g, '')
+    // Remove remaining HTML tags
+    .replace(/<[^>]+>/g, ' ')
     // Fix common encoding issues
     .replace(/â€™/g, "'")
     .replace(/â€œ/g, '"')
@@ -83,12 +94,19 @@ const cleanEmailBody = (text: string): string => {
     .replace(/â€"/g, '–')
     .replace(/Â /g, ' ')
     .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
     // Remove [image: ...] placeholders
     .replace(/\[image:[^\]]*\]/gi, '')
     // Clean up URLs in angle brackets
     .replace(/<(https?:\/\/[^>]+)>/g, '$1')
+    // Remove CSS-like content that might have leaked through
+    .replace(/\{[^}]*\}/g, ' ')
+    .replace(/@media[^{]*\{[^}]*\}/g, '')
     // Remove multiple consecutive spaces
-    .replace(/  +/g, ' ')
+    .replace(/[ \t]+/g, ' ')
     // Preserve line breaks but clean up excessive ones
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -186,7 +204,29 @@ function App() {
         extractContent(data.payload);
         
         // Use plain text if available, otherwise strip HTML
-        const body = plainText || (htmlBody ? htmlBody.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : "");
+        // Convert HTML to plain text properly
+        const htmlToText = (html: string): string => {
+          return html
+            // Remove style and script tags with content
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            // Remove HTML comments
+            .replace(/<!--[\s\S]*?-->/g, '')
+            // Convert br and p tags to newlines
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>/gi, '\n\n')
+            .replace(/<\/div>/gi, '\n')
+            // Remove all other tags
+            .replace(/<[^>]+>/g, ' ')
+            // Clean up whitespace
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n +/g, '\n')
+            .replace(/ +\n/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+        };
+        
+        const body = plainText || (htmlBody ? htmlToText(htmlBody) : "");
         
         const updates = { body, bodyHtml: htmlBody, attachments };
         
@@ -556,7 +596,7 @@ function App() {
             <MessageCircleHeart size={16} />
             <span>Send Feedback</span>
           </a>
-          <div className="version-badge">v1.3</div>
+          <div className="version-badge">v{APP_VERSION}</div>
         </div>
       </aside>
 
