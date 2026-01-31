@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -887,40 +887,37 @@ function App() {
               {gmailCount > 0 && <span className="source-count">{gmailCount}</span>}
             </div>
             {!collapsedSources.includes('gmail') && (
-              <>
+              <div className="source-accounts">
                 {accounts.filter(a => a.type === "gmail").map((account) => (
-                  <div key={account.email} className="source-item">
-                    <div className="source-dot" style={{ backgroundColor: SOURCE_CONFIG.gmail.color }} />
+                  <div key={account.email} className="source-item compact">
+                    <Check size={14} className="connected-check" />
                     <span className="source-email">{account.email}</span>
                     <button className="source-remove" onClick={(e) => { e.stopPropagation(); removeAccount(account); }}>
-                      <X size={14} />
+                      <X size={12} />
                     </button>
                   </div>
                 ))}
-                <button className="add-source-btn" onClick={connectGmail}>
-                  <Plus size={14} />
-                  <span>Add Gmail Account</span>
+                <button className="add-source-btn compact" onClick={connectGmail}>
+                  <Plus size={12} />
+                  <span>Add account</span>
                 </button>
-              </>
+              </div>
             )}
           </div>
 
           {/* Coming Soon Sources */}
-          {(["dropbox", "slack", "drive", "whatsapp"] as const).map((source) => {
-            const config = SOURCE_CONFIG[source];
-            const Icon = config.icon;
-            return (
-              <div key={source} className="source-group coming-soon">
-                <div className="source-header">
-                  <div className="source-header-left">
-                    <Icon size={16} />
-                    <span>{config.label}</span>
-                  </div>
-                  <span className="badge">Soon</span>
+          <div className="coming-soon-section">
+            {(["dropbox", "slack", "drive", "whatsapp"] as const).map((source) => {
+              const config = SOURCE_CONFIG[source];
+              const Icon = config.icon;
+              return (
+                <div key={source} className="source-item-disabled">
+                  <Icon size={14} />
+                  <span>{config.label}</span>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <div className="sidebar-footer">

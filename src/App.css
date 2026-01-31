@@ -402,20 +402,35 @@ body {
   background: var(--bg-primary);
 }
 
+/* Compact accounts list */
+.source-accounts {
+  margin-left: 20px;
+  padding: 4px 0;
+}
+
 .source-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
   transition: background var(--transition-fast);
-  margin-left: 8px;
+}
+
+.source-item.compact {
+  padding: 4px 8px;
+  margin: 2px 0;
 }
 
 .source-item:hover {
   background: var(--bg-hover);
+}
+
+.connected-check {
+  color: #22c55e;
+  flex-shrink: 0;
 }
 
 .source-dot {
@@ -432,11 +447,12 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  font-size: 12px;
 }
 
 .source-remove {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -458,6 +474,28 @@ body {
   color: #dc2626;
 }
 
+/* Coming Soon Section */
+.coming-soon-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.source-item-disabled {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  opacity: 0.6;
+}
+
 .add-source-btn {
   display: flex;
   align-items: center;
@@ -474,15 +512,25 @@ body {
   cursor: pointer;
   transition: all var(--transition-base);
   margin-top: 4px;
-  margin-left: 8px;
-  width: calc(100% - 8px);
+}
+
+.add-source-btn.compact {
+  padding: 6px 10px;
+  font-size: 11px;
+  justify-content: flex-start;
+  border: none;
+  color: var(--text-muted);
 }
 
 .add-source-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-subtle);
-  box-shadow: var(--shadow-xs);
+}
+
+.add-source-btn.compact:hover {
+  border: none;
+  background: var(--bg-hover);
 }
 
 .sidebar-footer {
