@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.5";
+const APP_VERSION = "3.6";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -278,6 +278,67 @@ function App() {
     } catch (e) {
       console.error("Failed to download attachment:", e);
       setError("Failed to download attachment");
+    }
+  };
+
+  // Download Google Drive file
+  const downloadDriveFile = async (fileId: string, fileName: string, mimeType: string, accountEmail: string) => {
+    const account = accounts.find(a => a.type === "gmail" && a.email === accountEmail);
+    if (!account) return;
+
+    try {
+      let downloadUrl: string;
+      let finalFileName = fileName;
+      
+      // Google Workspace files need to be exported
+      const isGoogleFile = mimeType.startsWith("application/vnd.google-apps.");
+      
+      if (isGoogleFile) {
+        // Export Google Docs/Sheets/Slides as PDF
+        const exportMimeTypes: Record<string, { mime: string; ext: string }> = {
+          "application/vnd.google-apps.document": { mime: "application/pdf", ext: ".pdf" },
+          "application/vnd.google-apps.spreadsheet": { mime: "application/pdf", ext: ".pdf" },
+          "application/vnd.google-apps.presentation": { mime: "application/pdf", ext: ".pdf" },
+          "application/vnd.google-apps.drawing": { mime: "application/pdf", ext: ".pdf" },
+        };
+        
+        const exportType = exportMimeTypes[mimeType];
+        if (!exportType) {
+          // Can't export this type, open in Drive instead
+          window.open(`https://drive.google.com/file/d/${fileId.replace('drive-', '')}/view`, '_blank');
+          return;
+        }
+        
+        downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId.replace('drive-', '')}/export?mimeType=${encodeURIComponent(exportType.mime)}`;
+        // Add extension if not present
+        if (!finalFileName.toLowerCase().endsWith(exportType.ext)) {
+          finalFileName += exportType.ext;
+        }
+      } else {
+        // Regular files - direct download
+        downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId.replace('drive-', '')}?alt=media`;
+      }
+
+      const res = await fetch(downloadUrl, {
+        headers: { Authorization: `Bearer ${account.accessToken}` }
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = finalFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error("Download failed");
+      }
+    } catch (e) {
+      console.error("Failed to download Drive file:", e);
+      setError("Failed to download file");
     }
   };
 
@@ -1380,6 +1441,18 @@ function App() {
 
                       {/* Drive Actions */}
                       <div className="preview-actions">
+                        <button
+                          className="action-btn"
+                          onClick={() => downloadDriveFile(
+                            selectedResult.id,
+                            selectedResult.title,
+                            selectedResult.metadata?.mimeType || "",
+                            selectedResult.sourceLabel
+                          )}
+                        >
+                          <Download size={16} />
+                          <span>Download{selectedResult.metadata?.mimeType?.startsWith("application/vnd.google-apps.") ? " as PDF" : ""}</span>
+                        </button>
                         <a 
                           href={selectedResult.url} 
                           target="_blank"
