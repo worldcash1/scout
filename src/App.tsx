@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -235,6 +235,44 @@ function App() {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
     }
   }, [accounts]);
+
+  // Download attachment
+  const downloadAttachment = async (messageId: string, attachmentId: string, filename: string, accountEmail: string) => {
+    const account = accounts.find(a => a.type === "gmail" && a.email === accountEmail);
+    if (!account) return;
+
+    try {
+      const res = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
+        { headers: { Authorization: `Bearer ${account.accessToken}` } }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        // Decode base64 attachment data
+        const byteCharacters = atob(data.data.replace(/-/g, '+').replace(/_/g, '/'));
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray]);
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error("Failed to download attachment:", e);
+      setError("Failed to download attachment");
+    }
+  };
 
   // Send feedback email
   const sendFeedback = async () => {
@@ -1093,10 +1131,21 @@ function App() {
                             return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
                           };
                           return (
-                            <div key={idx} className="attachment-item">
+                            <div 
+                              key={idx} 
+                              className="attachment-item"
+                              onClick={() => downloadAttachment(
+                                selectedResult.id, 
+                                att.id, 
+                                att.filename, 
+                                selectedResult.sourceLabel
+                              )}
+                              title="Click to download"
+                            >
                               {getIcon()}
                               <span className="attachment-name">{att.filename}</span>
                               <span className="attachment-size">{formatSize(att.size)}</span>
+                              <Download size={16} className="attachment-download" />
                             </div>
                           );
                         })}
