@@ -97,7 +97,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "5.4";
+const APP_VERSION = "5.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -206,7 +206,7 @@ function App() {
   const [collapsedSources, setCollapsedSources] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("scout-theme");
-    return (saved as Theme) || "system";
+    return (saved as Theme) || "light";
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(false);
