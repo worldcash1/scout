@@ -573,11 +573,13 @@ function App() {
   };
 
   const connectDropbox = () => {
+    const scopes = "account_info.read files.metadata.read files.content.read";
     const authUrl = `https://www.dropbox.com/oauth2/authorize?` +
       `client_id=${DROPBOX_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(DROPBOX_REDIRECT_URI)}&` +
       `response_type=code&` +
       `token_access_type=offline&` +
+      `scope=${encodeURIComponent(scopes)}&` +
       `state=dropbox`;
     
     window.location.href = authUrl;
