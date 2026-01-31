@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search,
   Mail,
@@ -105,6 +105,11 @@ const decodeHTML = (html: string): string => {
   return txt.value;
 };
 
+// Escape special regex characters for safe use in RegExp
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 // Properly decode base64 with UTF-8 support
 const decodeBase64UTF8 = (base64: string): string => {
   try {
@@ -124,7 +129,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.2";
+const APP_VERSION = "7.3";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -274,6 +279,15 @@ function App() {
     }
   }, [accounts]);
 
+  // Cleanup feedback timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Download attachment
   const downloadAttachment = async (messageId: string, attachmentId: string, filename: string, accountEmail: string) => {
     const account = accounts.find(a => a.type === "gmail" && a.email === accountEmail);
@@ -393,7 +407,7 @@ function App() {
       
       if (res.ok) {
         setFeedbackSent(true);
-        setTimeout(() => {
+        feedbackTimeoutRef.current = setTimeout(() => {
           setShowFeedback(false);
           setFeedbackText("");
           setFeedbackSent(false);
@@ -815,6 +829,9 @@ function App() {
 
   // Track current search to prevent race conditions
   const searchIdRef = useRef(0);
+  
+  // Ref for feedback modal timeout cleanup
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = async () => {
     if (!query.trim()) return;
@@ -1256,12 +1273,14 @@ function App() {
 
   const gmailCount = accounts.filter(a => a.type === "gmail").length;
 
-  // Sort results
-  const sortedResults = [...results].sort((a, b) => {
-    const dateA = new Date(a.date || 0).getTime();
-    const dateB = new Date(b.date || 0).getTime();
-    return sortBy === "newest" ? dateB - dateA : dateA - dateB;
-  });
+  // Sort results (memoized for performance)
+  const sortedResults = useMemo(() => {
+    return [...results].sort((a, b) => {
+      const dateA = new Date(a.date || 0).getTime();
+      const dateB = new Date(b.date || 0).getTime();
+      return sortBy === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [results, sortBy]);
 
   const toggleCollapse = (source: string) => {
     setCollapsedSources(prev => 
@@ -1982,11 +2001,11 @@ function App() {
                     <>
                       <div className="slack-message-preview">
                         <div className="slack-message-text">
-                          {selectedResult.snippet.split(new RegExp(`(${query})`, 'gi')).map((part, i) => 
+                          {query.trim() ? selectedResult.snippet.split(new RegExp(`(${escapeRegex(query)})`, 'gi')).map((part, i) => 
                             part.toLowerCase() === query.toLowerCase() 
                               ? <mark key={i} className="search-highlight">{part}</mark>
                               : part
-                          )}
+                          ) : selectedResult.snippet}
                         </div>
                       </div>
                       <div className="preview-actions">
