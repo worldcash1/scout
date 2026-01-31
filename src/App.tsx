@@ -111,7 +111,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.1";
+const APP_VERSION = "6.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1213,17 +1213,19 @@ function App() {
           </div>
 
           {/* Dropbox Section */}
-          {accounts.filter(a => a.type === "dropbox").length > 0 && (
-            <div className="source-group dropbox-group">
-              <div className="source-header">
-                <div className="source-header-left">
-                  <Box size={16} style={{ color: "#0061fe" }} />
-                  <span>Dropbox</span>
-                </div>
-                <span className="source-count">{accounts.filter(a => a.type === "dropbox").length}</span>
+          <div className="source-group dropbox-group">
+            <div className="source-header">
+              <div className="source-header-left">
+                <Box size={16} style={{ color: "#0061fe" }} />
+                <span>Dropbox</span>
               </div>
-              <div className="source-accounts">
-                {accounts.filter(a => a.type === "dropbox").map((account) => (
+              {accounts.filter(a => a.type === "dropbox").length > 0 && (
+                <span className="source-count">{accounts.filter(a => a.type === "dropbox").length}</span>
+              )}
+            </div>
+            <div className="source-accounts">
+              {accounts.filter(a => a.type === "dropbox").length > 0 ? (
+                accounts.filter(a => a.type === "dropbox").map((account) => (
                   <div key={account.email} className="source-item compact">
                     <Check size={14} className="connected-check" />
                     <div className="account-info">
@@ -1236,10 +1238,15 @@ function App() {
                       <X size={12} />
                     </button>
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                <button className="connect-source-btn" onClick={connectDropbox}>
+                  <Plus size={14} />
+                  <span>Connect Dropbox</span>
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="sidebar-footer">
