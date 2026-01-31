@@ -129,7 +129,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.4";
+const APP_VERSION = "7.5";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -915,12 +915,17 @@ function App() {
             setNextPageToken(null);
           }
 
-          await Promise.all(messages.map(async (msg: { id: string }) => {
+          // Batch requests to avoid rate limiting (5 concurrent max)
+          const batchSize = 5;
+          for (let i = 0; i < messages.length; i += batchSize) {
             if (isCancelled()) return;
-            const detailRes = await fetch(
-              `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const batch = messages.slice(i, i + batchSize);
+            await Promise.all(batch.map(async (msg: { id: string }) => {
+              if (isCancelled()) return;
+              const detailRes = await fetch(
+                `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
             
             if (detailRes.ok) {
               const detail = await detailRes.json();
@@ -946,7 +951,8 @@ function App() {
                 metadata: { account: account.email, messageId: detail.id, fromEmail }
               });
             }
-          }));
+            }));
+          }
         } catch (e) {
           console.error(`Gmail search error for ${account.email}:`, e);
         }
@@ -1088,20 +1094,21 @@ function App() {
               ? `${(file.size / 1024).toFixed(1)} KB` 
               : `${(file.size / (1024 * 1024)).toFixed(1)} MB`) : "";
 
+            const pathDisplay = file.path_display || "";
             allResults.push({
               id: `dropbox-${file.id}`,
               source: "dropbox",
               sourceLabel: account.email,
               sourceColor: SOURCE_CONFIG.dropbox.color,
-              title: file.name,
-              subtitle: file.path_display.replace(`/${file.name}`, "") || "/",
+              title: file.name || "Unnamed file",
+              subtitle: pathDisplay.replace(`/${file.name}`, "") || "/",
               snippet: fileSize ? `${fileType} • ${fileSize}` : fileType,
-              date: file.client_modified,
-              url: `https://www.dropbox.com/home${file.path_display}`,
+              date: file.client_modified || new Date().toISOString(),
+              url: pathDisplay ? `https://www.dropbox.com/home${pathDisplay}` : "",
               metadata: { 
                 account: account.email,
                 fileType,
-                path: file.path_display
+                path: pathDisplay
               }
             });
           });
