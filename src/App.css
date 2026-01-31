@@ -1364,6 +1364,38 @@ body {
   margin-bottom: 2px;
 }
 
+.result-row-1-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.source-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.source-indicator.gmail {
+  background: rgba(234, 67, 53, 0.1);
+  color: #ea4335;
+}
+
+.source-indicator.drive {
+  background: rgba(52, 168, 83, 0.1);
+  color: #34a853;
+}
+
+.source-indicator.dropbox {
+  background: rgba(0, 97, 254, 0.1);
+  color: #0061fe;
+}
+
 .result-row-1-right {
   display: flex;
   align-items: center;

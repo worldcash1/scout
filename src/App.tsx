@@ -111,7 +111,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.0";
+const APP_VERSION = "6.1";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1471,7 +1471,14 @@ function App() {
                       >
                         <div className="result-content">
                           <div className="result-row-1">
-                            <span className="result-sender">{result.subtitle}</span>
+                            <div className="result-row-1-left">
+                              <span className={`source-indicator ${result.source}`}>
+                                {result.source === "gmail" && <Mail size={10} />}
+                                {result.source === "drive" && <FolderOpen size={10} />}
+                                {result.source === "dropbox" && <Box size={10} />}
+                              </span>
+                              <span className="result-sender">{result.subtitle}</span>
+                            </div>
                             <div className="result-row-1-right">
                               {result.attachments && result.attachments.length > 0 && (
                                 <Paperclip size={14} className="attachment-indicator" />
