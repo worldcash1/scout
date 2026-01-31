@@ -71,7 +71,6 @@ const DROPBOX_REDIRECT_URI = window.location.origin;
 
 // Slack OAuth config
 const SLACK_CLIENT_ID = "10398366226727.10442113554736";
-const SLACK_CLIENT_SECRET = "e634eb8ae400f133bae91e568930976d";
 const SLACK_REDIRECT_URI = window.location.origin;
 
 interface Attachment {
@@ -124,7 +123,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.3";
+const APP_VERSION = "6.4";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -742,38 +741,25 @@ function App() {
     setError(null);
     
     try {
-      const tokenRes = await fetch("https://slack.com/api/oauth.v2.access", {
+      // Use our API route to handle Slack OAuth (avoids CORS issues)
+      const tokenRes = await fetch("/api/slack-oauth", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           code,
-          client_id: SLACK_CLIENT_ID,
-          client_secret: SLACK_CLIENT_SECRET,
           redirect_uri: SLACK_REDIRECT_URI,
         }),
       });
 
-      const tokenData = await tokenRes.json();
-      console.log("Slack token response:", tokenData);
-      if (!tokenData.ok) throw new Error(tokenData.error || "Slack auth failed");
-
-      const userToken = tokenData.authed_user?.access_token;
-      if (!userToken) throw new Error("No user token received");
-
-      // Get user info
-      const userRes = await fetch("https://slack.com/api/users.identity", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-      
-      const userData = await userRes.json();
-      console.log("Slack user data:", userData);
-      if (!userData.ok) throw new Error(userData.error || "Failed to get Slack user info");
+      const data = await tokenRes.json();
+      console.log("Slack OAuth response:", data);
+      if (!data.ok) throw new Error(data.error || "Slack auth failed");
 
       const newAccount: SlackAccount = {
         type: "slack",
-        email: userData.user?.email || userData.user?.name || "Slack User",
-        team: userData.team?.name || "Workspace",
-        accessToken: userToken,
+        email: data.user?.email || data.user?.name || "Slack User",
+        team: data.team?.name || "Workspace",
+        accessToken: data.access_token,
         color: "#4a154b" // Slack purple
       };
 
