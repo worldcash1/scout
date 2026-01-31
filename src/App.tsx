@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.9";
+const APP_VERSION = "4.0";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1469,7 +1469,8 @@ function App() {
                           href={selectedResult.url} 
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="action-btn primary"
+                          className="action-btn primary source-colored"
+                          style={{ backgroundColor: SOURCE_CONFIG.drive.color, borderColor: SOURCE_CONFIG.drive.color }}
                         >
                           <ExternalLink size={16} />
                           <span>Open in Google Drive</span>
@@ -1586,7 +1587,8 @@ function App() {
                         href={selectedResult.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="action-btn primary"
+                        className="action-btn primary source-colored"
+                        style={{ backgroundColor: SOURCE_CONFIG.gmail.color, borderColor: SOURCE_CONFIG.gmail.color }}
                       >
                         <ExternalLink size={16} />
                         <span>Open in Gmail</span>
@@ -1599,10 +1601,11 @@ function App() {
                       href={selectedResult.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="preview-open-btn"
+                      className="action-btn primary source-colored"
+                      style={{ backgroundColor: SOURCE_CONFIG[selectedResult.source].color, borderColor: SOURCE_CONFIG[selectedResult.source].color }}
                     >
-                      <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
                       <ExternalLink size={16} />
+                      <span>Open in {SOURCE_CONFIG[selectedResult.source].label}</span>
                     </a>
                   )}
                 </div>
