@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1593,7 +1593,7 @@ function App() {
                     </div>
                   )}
                   
-                  {selectedResult.source !== "gmail" && selectedResult.url && (
+                  {selectedResult.source !== "gmail" && selectedResult.source !== "drive" && selectedResult.url && (
                     <a 
                       href={selectedResult.url} 
                       target="_blank" 
