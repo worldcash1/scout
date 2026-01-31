@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "4.1";
+const APP_VERSION = "4.2";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -223,10 +223,6 @@ function App() {
   const [listWidth, setListWidth] = useState(() => {
     const saved = localStorage.getItem("scout-list-width");
     return saved ? parseInt(saved) : 420;
-  });
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem("scout-sidebar-width");
-    return saved ? parseInt(saved) : 280;
   });
   const [isResizing, setIsResizing] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -373,31 +369,6 @@ function App() {
     } finally {
       setFeedbackSending(false);
     }
-  };
-
-  // Handle sidebar resize
-  const handleSidebarResizeStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const diff = e.clientX - startX;
-      const newWidth = Math.min(Math.max(startWidth + diff, 200), 400);
-      setSidebarWidth(newWidth);
-    };
-    
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      localStorage.setItem("scout-sidebar-width", sidebarWidth.toString());
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-    
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
   };
 
   // Handle list panel resize
@@ -999,7 +970,7 @@ function App() {
       />
       
       {/* Sidebar */}
-      <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`} style={{ width: `${sidebarWidth}px` }}>
+      <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
             <img src="/logo.svg" alt="Scout" className="logo-full" />
@@ -1093,12 +1064,6 @@ function App() {
           <div className="version-badge">v{APP_VERSION}</div>
         </div>
       </aside>
-
-      {/* Sidebar Resize Handle */}
-      <div 
-        className="sidebar-resize-handle"
-        onMouseDown={handleSidebarResizeStart}
-      />
 
       {/* Main Content */}
       <main className={`main ${isResizing ? 'resizing' : ''}`}>
