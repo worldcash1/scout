@@ -99,7 +99,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "4.7";
+const APP_VERSION = "4.8";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1076,14 +1076,14 @@ function App() {
                 <X size={16} />
               </button>
             )}
-            <button 
-              className={`filter-toggle-btn ${showFilters ? 'active' : ''} ${(filters.dateRange !== 'any' || filters.hasAttachment || filters.from) ? 'has-filters' : ''}`}
-              onClick={() => setShowFilters(!showFilters)}
-              title="Search filters"
-            >
-              <Filter size={18} />
-            </button>
           </div>
+          <button 
+            className={`filter-toggle-btn ${showFilters ? 'active' : ''} ${(filters.dateRange !== 'any' || filters.hasAttachment || filters.from) ? 'has-filters' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
+            title="Search filters"
+          >
+            <Filter size={18} />
+          </button>
           <button className="search-btn" onClick={search} disabled={loading || accounts.length === 0}>
             {loading ? (
               <>
