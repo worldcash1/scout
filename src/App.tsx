@@ -122,7 +122,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "6.7";
+const APP_VERSION = "6.8";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -198,7 +198,6 @@ const SOURCE_CONFIG = {
 };
 
 const GMAIL_CLIENT_ID = "1063241264534-20soj16a1sv7u78212f4k3qn4khcbf05.apps.googleusercontent.com";
-const GMAIL_CLIENT_SECRET = "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";
 const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive.readonly email";
 
 type Theme = "light" | "dark" | "system";
@@ -628,38 +627,29 @@ function App() {
     setError(null);
     
     try {
-      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      // Use API route to keep secrets server-side
+      const tokenRes = await fetch("/api/google-oauth", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: GMAIL_CLIENT_ID,
-          client_secret: GMAIL_CLIENT_SECRET,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           code,
-          grant_type: "authorization_code",
           redirect_uri: getRedirectUri(),
         }),
       });
 
-      const tokenData = await tokenRes.json();
-      if (!tokenRes.ok) throw new Error(tokenData.error_description || "Auth failed");
-
-      const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-        headers: { Authorization: `Bearer ${tokenData.access_token}` }
-      });
-      
-      if (!userRes.ok) throw new Error("Failed to get user info");
-      const user = await userRes.json();
+      const data = await tokenRes.json();
+      if (!tokenRes.ok) throw new Error(data.error || "Auth failed");
 
       const colors = ["#ea4335", "#4285f4", "#fbbc05", "#34a853", "#ff6d01", "#46bdc6"];
       const newAccount: GmailAccount = {
         type: "gmail",
-        email: user.email,
-        accessToken: tokenData.access_token,
+        email: data.email,
+        accessToken: data.access_token,
         color: colors[accounts.filter(a => a.type === "gmail").length % colors.length]
       };
 
       setAccounts(prev => {
-        const existing = prev.findIndex(a => a.type === "gmail" && a.email === user.email);
+        const existing = prev.findIndex(a => a.type === "gmail" && a.email === data.email);
         if (existing >= 0) {
           const updated = [...prev];
           updated[existing] = newAccount;
@@ -679,47 +669,28 @@ function App() {
     setError(null);
     
     try {
-      const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
+      // Use API route to keep secrets server-side
+      const tokenRes = await fetch("/api/dropbox-oauth", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           code,
-          grant_type: "authorization_code",
           redirect_uri: DROPBOX_REDIRECT_URI,
-          client_id: DROPBOX_CLIENT_ID,
-          client_secret: "u4l4im2y3i3i1v4",
         }),
       });
 
-      const tokenData = await tokenRes.json();
-      console.log("Dropbox token response:", tokenData);
-      if (!tokenRes.ok) throw new Error(tokenData.error_description || tokenData.error || "Dropbox auth failed");
-
-      // Get user info
-      const userRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
-        method: "POST",
-        headers: { 
-          Authorization: `Bearer ${tokenData.access_token}`,
-        },
-        body: null
-      });
-      
-      if (!userRes.ok) {
-        const errData = await userRes.json().catch(() => ({}));
-        console.error("Dropbox user info error:", errData);
-        throw new Error(errData.error_summary || "Failed to get Dropbox user info");
-      }
-      const user = await userRes.json();
+      const data = await tokenRes.json();
+      if (!tokenRes.ok) throw new Error(data.error || "Dropbox auth failed");
 
       const newAccount: DropboxAccount = {
         type: "dropbox",
-        email: user.email,
-        accessToken: tokenData.access_token,
+        email: data.email,
+        accessToken: data.access_token,
         color: "#0061fe" // Dropbox blue
       };
 
       setAccounts(prev => {
-        const existing = prev.findIndex(a => a.type === "dropbox" && a.email === user.email);
+        const existing = prev.findIndex(a => a.type === "dropbox" && a.email === data.email);
         if (existing >= 0) {
           const updated = [...prev];
           updated[existing] = newAccount;
