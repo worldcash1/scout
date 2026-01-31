@@ -129,7 +129,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "7.5";
+const APP_VERSION = "7.6";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -1977,9 +1977,9 @@ function App() {
                       </div>
                     ) : viewHtml && selectedResult.bodyHtml ? (
                       <iframe
-                        srcDoc={selectedResult.bodyHtml}
+                        srcDoc={`<style>img{max-width:100%;height:auto}.img-error{display:none!important}</style>${selectedResult.bodyHtml?.replace(/<img /gi, '<img onerror="this.classList.add(\'img-error\')" ')}`}
                         className="email-iframe"
-                        sandbox=""
+                        sandbox="allow-scripts"
                         referrerPolicy="no-referrer"
                         title="Email content"
                       />
