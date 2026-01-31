@@ -2029,7 +2029,7 @@ body {
   gap: 8px;
 }
 
-.action-btn {
+.selection-bar .action-btn {
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.8);
@@ -2044,7 +2044,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-.action-btn:hover {
+.selection-bar .action-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   color: white;
 }
