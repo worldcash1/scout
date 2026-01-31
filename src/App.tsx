@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -208,7 +208,10 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loadingBody, setLoadingBody] = useState(false);
-  const [viewHtml, setViewHtml] = useState(true);
+  const [viewHtml, setViewHtml] = useState(() => {
+    const saved = localStorage.getItem("scout-view-html");
+    return saved !== null ? saved === "true" : true; // Default to Rich
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     dateRange: "any",
@@ -227,6 +230,11 @@ function App() {
       localStorage.setItem("scout-accounts", JSON.stringify(accounts));
     }
   }, [accounts]);
+  
+  // Save view preference
+  useEffect(() => {
+    localStorage.setItem("scout-view-html", viewHtml.toString());
+  }, [viewHtml]);
 
   // Handle panel resize
   const handleResizeStart = (e: React.MouseEvent) => {
