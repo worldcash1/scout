@@ -94,7 +94,7 @@ const decodeBase64UTF8 = (base64: string): string => {
 };
 
 // App version
-const APP_VERSION = "2.6";
+const APP_VERSION = "2.7";
 
 // Format date to relative time
 const formatRelativeDate = (dateStr: string): string => {
@@ -243,7 +243,7 @@ function App() {
     setFeedbackSending(true);
     try {
       // Using Formspree - free email form service
-      const res = await fetch("https://formspree.io/f/xwpkpqvr", {
+      const res = await fetch("https://formspree.io/f/mdazjnzz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
