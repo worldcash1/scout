@@ -846,6 +846,7 @@ body {
   box-shadow: var(--shadow-lg);
   z-index: 100;
   overflow: hidden;
+  animation: popIn var(--duration-fast) var(--ease-out-expo);
 }
 
 .history-header {
@@ -1268,7 +1269,7 @@ body {
   padding: 10px var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-base);
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1276,6 +1277,8 @@ body {
 
 .result-item:hover {
   background: var(--bg-secondary);
+  border-left: 2px solid var(--accent);
+  padding-left: calc(var(--space-4) - 2px);
 }
 
 .result-item:hover .result-sender {
@@ -1342,20 +1345,22 @@ body {
 .result-item.selected .result-arrow {
   opacity: 1;
   color: var(--accent);
+  transform: translateY(-50%) translateX(0);
 }
 
 .result-arrow {
   position: absolute;
   right: 16px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) translateX(-4px);
   color: var(--text-muted);
   opacity: 0;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-base);
 }
 
 .result-item:hover .result-arrow {
-  opacity: 0.5;
+  opacity: 0.7;
+  transform: translateY(-50%) translateX(0);
 }
 
 .result-source {
@@ -1869,11 +1874,11 @@ body {
 }
 
 .preview-card {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
   max-width: 800px;
 }
 
@@ -2672,7 +2677,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
     z-index: 90;
     opacity: 0;
     visibility: hidden;
