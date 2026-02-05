@@ -1622,17 +1622,11 @@ function App() {
           >
             <Filter size={18} />
           </button>
-          <button className="search-btn" onClick={search} disabled={loading || accounts.length === 0}>
+          <button className="search-btn" onClick={search} disabled={loading || accounts.length === 0} aria-label="Search">
             {loading ? (
-              <>
-                <Loader2 size={18} className="spin" />
-                <span>Searching</span>
-              </>
+              <Loader2 size={18} className="spin" />
             ) : (
-              <>
-                <Search size={18} />
-                <span>Search</span>
-              </>
+              <Search size={18} />
             )}
           </button>
         </header>
@@ -1864,9 +1858,14 @@ function App() {
             {!selectedResult ? (
               <div className="preview-empty">
                 <div className="preview-empty-icon">
-                  <Mail size={48} strokeWidth={1.5} />
+                  <ChevronRight size={24} strokeWidth={1.5} />
                 </div>
-                <p>Select a message to preview</p>
+                <p>Select a result to preview</p>
+                <div className="preview-empty-tips">
+                  <p>Press <kbd>Enter</kbd> to search</p>
+                  <p>Use filters to narrow results</p>
+                  <p>Click any result to see details</p>
+                </div>
               </div>
             ) : (
               <div className="preview-content">
